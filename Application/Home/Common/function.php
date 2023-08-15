@@ -7,13 +7,12 @@ if (!function_exists('message')) {
 	 * @param bool $success 是否成功
 	 * @param array $data 结果数据
 	 * @param int $code 错误码
+	 * @param int $count 总数
 	 * @return array 返回消息对象
-	 * @author 牧羊人
-	 * @date 2020/7/1
 	 */
-	function message($msg = "操作成功", $success = true, $data = array(), $code = 0)
+	function message($msg = "操作成功", $success = true, $data = array(), $code = 0, $count = 0)
 	{
-		$result = array('msg' => $msg, 'data' => $data, 'success' => $success);
+		$result = array('msg' => $msg, 'data' => $data, 'success' => $success, 'count' => $count);
 		if ($success) {
 			// 成功统一返回0
 			$result['code'] = 0;

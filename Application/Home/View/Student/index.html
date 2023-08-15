@@ -234,11 +234,6 @@
 		<li field="class" title="班级" edit="text"></li>
 		<li field="extend_1" title="扩展组1" edit="text"></li>
 		<li field="extend_2" title="扩展组2" edit="text"></li>
-		<!--		<li field="name" title="姓名" edit="text"></li>-->
-		<!--		<li field="sex" title="性别" edit="select" templet="#selectSex"></li>-->
-		<!--		<li field="birthday" title="出生日期" edit="date"></li>-->
-		<!--		<li field="phone" title="手机号码" edit="text" layVerify="phone"></li>-->
-		<!--		<li field="email" title="邮箱" edit="text" layVerify="email"></li>-->
 	</ul>
 
 	<div id="tagSelectLayer" style="display: none;">
@@ -259,7 +254,6 @@
 </script>
 
 <script>
-
 	// 提交下一步的时候检查是否选择了分组字段，
 	layui.use(['form'], function () {
 		var form = layui.form;
@@ -292,8 +286,7 @@
 		});
 
 		// radio-type 默认选中是
-		$("input[name='radio-type'][value='yes']").attr("checked", true);
-
+		// $("input[name='radio-type'][value='yes']").attr("checked", true);
 		//如果你的 HTML 是动态生成的，自动渲染就会失效
 		//因此你需要在相应的地方，执行下述方法来进行渲染
 		form.render();
@@ -321,6 +314,7 @@
 			elem: '#grade'
 			// ,height: 312
 			,url: "/home/student/grade" //数据接口
+			,limit: 10
 			,page: true //开启分页
 			,cols: [[ //表头
 				{field: 'grade', title: '年级',  fixed: 'left'}
@@ -336,9 +330,10 @@
 		table.render({
 			elem: '#history-statis'
 			// ,height: 312
+			,type: 'get'
 			,url: "/home/student/history" //数据接口
+			,limit: 10 //注意：请务必确保 limit 参数（默认：10）是与你服务端限定的数据条数一致
 			,page: true //开启分页
-			// ,toolbar: '#history-statis-bar'
 			,cols: [[ //表头
 				{field: 'id', title: 'ID',  fixed: 'left', sort: true}
 				,{field: 'title', title: '查询名称'}
@@ -386,7 +381,7 @@
 
 		dynamicCondition.create({
 			elem:"#dcDemo" //通过容器选择器传入，也可以$("#dcDemo"),或者document.getElementById("dcDemo")
-			,tableId:"listTable" //静态页面不好演示table数据表格更新
+			// ,tableId:"listTable" //静态页面不好演示table数据表格更新
 			,type:"complex"  //type:"simple"/"complex"
 			,conditionTextId:"#msg2"
 			,popupMsgText:""
@@ -395,7 +390,7 @@
 			,queryCallBack:function(requestData){
 				//  encodeURIComponent 是为了解决中文乱码问题
 				$("#result2").html(encodeURIComponent(JSON.stringify(requestData)));
-				// $("#condition").val(encodeURIComponent(JSON.stringify(requestData)));
+				$("#condition").val(encodeURIComponent(JSON.stringify(requestData)));
 			}
 		});
 
@@ -424,7 +419,6 @@
 				title: "选择标签",
 				content: $("#tagSelectLayer"),
 				area: ['50%', 'auto'],
-
 			});
 		});
 
@@ -453,7 +447,6 @@
 
 		// 触发一次初始渲染
 		form.render();
-		// 分组设置
 	});
 
 

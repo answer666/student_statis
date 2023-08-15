@@ -4,7 +4,6 @@ namespace Home\Controller;
 use Home\model\QqueryLogModel;
 use Home\Model\StudentModel;
 use Home\Service\StudentService;
-use PhpZip\ZipFile;
 use Think\Log;
 
 class StudentController extends BaseController {
@@ -18,6 +17,9 @@ class StudentController extends BaseController {
 		'min_score' => '最低分',
 		'avg_score' => '平均分',
 		'number' => '人数',
+		'group_tags' => '分组标签',
+		'extend_1' => '扩展组1',
+		'extend_2' => '扩展组2',
 	];
 	/**
 	 * @var \XLSXWriter
@@ -109,6 +111,9 @@ class StudentController extends BaseController {
 		$sql = $logRes['query_sql'];
 		$title = json_decode($logRes['header_mapping'], true);
 		$result = $this->model->query($sql);
+		foreach ($result as $key => $value) {
+			$result[$key]['group_tags'] = $logRes['group_tags'];
+		}
 		$fileName = date('YmdHis') . rand(1000, 9999) . '.xlsx';
 		$this->downloadExcel($title, $result, $fileName, 1);
 		$zipFileName = 'downloaded_files.zip';
@@ -119,7 +124,6 @@ class StudentController extends BaseController {
 		} else {
 			$command = "zip $zipFileName -j $fileName";
 		}
-		//Log::record('command: ' . $command, 'debug');
 		system($command);
 
 		// 设置响应头的 Content-Type
@@ -144,6 +148,10 @@ class StudentController extends BaseController {
 		$sql = $logRes['query_sql'];
 		$title = json_decode($logRes['header_mapping'], true);
 		$result = $this->model->query($sql);
+		// 每个结果 循环加上 group_tags => $logRes['group_tags']
+		foreach ($result as $key => $value) {
+			$result[$key]['group_tags'] = $logRes['group_tags'];
+		}
 		$fileName = date('YmdHis') . '_statis' . '.xlsx';
 		$this->downloadExcel($title, $result, $fileName);
 		exit();
@@ -155,12 +163,15 @@ class StudentController extends BaseController {
 		$id = I('get.id'); // 自增id;
 		$type = I('get.type');
 		$logRes = $this->queryLogModel->where(['id' => $id])->find();
-
+		// 选择的分组标签，和查询结果分离开。 属于额外的信息
+		$selectedTagsString = $logRes['group_tags'];
 		$result = $this->queryLogModel->query($logRes['query_sql']);
 		$tableHeader = json_decode($logRes['table_header'], true);
+		// 分组标签
 		$this->display("Public:header");
 		$this->assign('queryLogID', $id);
 		$this->assign('result', $result);
+		$this->assign('selectedTagsString', $selectedTagsString);
 		$this->assign('tableHeader', $tableHeader);
 		$this->assign('type', $type);
 		$this->display('result');
@@ -169,9 +180,25 @@ class StudentController extends BaseController {
 
 	public function result() {
 		$params = I('post.');
+		Log::record(json_encode($params) . ' result', 'debug');
 		$header = $params['fields'];
+		// 把 selectedTags 对应的转为对应的中文
+		$selectedTags = explode(',', $params['selectedTags']);
+		$selectedTags = array_filter($selectedTags);
+		$selectedTagsArr = array_map(function($item) {
+			return self::MAPPING[trim($item)];
+		}, $selectedTags);
+		$selectedTagsString = implode(',', $selectedTagsArr);
+
+		//var_dump($selectedTagsString, $selectedTagsString, json_encode($params));
+		//die;
 		// 组装成 {field:'username', width:100}
 		$tableHeader = [];
+		// 在 tableHeader 数组最前面插入一个 slug 为 id 的元素
+		// 在数组开头插入新元素
+		$newElement = ['group_tags' => '分组标签'];
+		$header = array_merge($newElement, $header);
+
 		foreach ($header as $key => $value) {
 			// 拼接成 {field:'id', width:80, sort: true} 的字符串，非json
 			$excelHeader[$key] = self::MAPPING[$key];
@@ -191,6 +218,7 @@ class StudentController extends BaseController {
 		// 把这次的查询条件存入数据库
 		//$tableHeader
 		$this->queryLogModel->add([
+			'group_tags' => $selectedTagsString,
 			'header_mapping' => json_encode($excelHeader, JSON_UNESCAPED_UNICODE),
 			'table_header' => json_encode($tableHeader, JSON_UNESCAPED_UNICODE),
 			'query_data' => json_encode($result, JSON_UNESCAPED_UNICODE),
@@ -205,6 +233,7 @@ class StudentController extends BaseController {
 		$this->display("Public:header");
 		$this->assign('queryLogID', $id);
 		$this->assign('result', $result);
+		$this->assign('selectedTagsString', $selectedTagsString);
 		$this->assign('tableHeader', $tableHeader);
 		$this->display();
 		$this->display("Public:footer");
@@ -319,12 +348,16 @@ class StudentController extends BaseController {
 
 	public function history()
 	{
+		$limit = I('get.page');
+		$offset = I('get.limit');
 		// 查询并分组
 		$result = $this->queryLogModel->field('id, title, created_at, updated_at')
 			->where(['status' => 1])
 			->order('created_at desc')
+			->limit($offset * ($limit - 1), $offset)
 			->select();
-		$this->ajaxReturn(message('success', 'success', $result));
+		$count = $this->queryLogModel->where(['status' => 1])->count();
+		$this->ajaxReturn(message('success', 'success', $result, 0, $count));
 	}
 
 	public function historyDel()

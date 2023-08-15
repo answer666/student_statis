@@ -16,7 +16,11 @@
 			<foreach name="result" item="vo" >
 				<tr>
 					<foreach name="tableHeader" item="vo1" >
-						<td>{$vo[$vo1['slug']]}</td>
+						<?php if($vo1['slug'] == 'group_tags'):?>
+							<td><?php echo $selectedTagsString; ?></td>
+						<?php else: ?>
+							<td>{$vo[$vo1['slug']]}</td>
+						<?php endif;?>
 					</foreach>
 				</tr>
 			</foreach>
@@ -139,7 +143,7 @@
 					break;
 				case 'getBack':
 					// 返回上一页
-					window.history.back(-1);
+					window.location.href = '/home/student/index';
 					break;
 			};
 		});
