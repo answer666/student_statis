@@ -101,16 +101,20 @@ class StudentService extends BaseService
 				$fieldArr[] = $key;
 			}
 		}
+
+		// 要查询的字段是implode(',', $fieldArr) + 分组字段 $dataArr['selectedTags']
+		$queryField = implode(',', $fieldArr) . ',' . $dataArr['selectedTags'];
+
 		// 组装成 sql 动态的
 		if ($showForm === 'no' && !empty($where)) {
 			$result = $this->model
-				->field(implode(',', $fieldArr))
+				->field($queryField)
 				->where($where)
 				->group($dataArr['selectedTags'])
 				->select();
 		} else {
 			$result = $this->model
-				->field(implode(',', $fieldArr))
+				->field($queryField)
 				->group($dataArr['selectedTags'])
 				->select();
 		}

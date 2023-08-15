@@ -190,23 +190,18 @@ class StudentController extends BaseController {
 		}, $selectedTags);
 		$selectedTagsString = implode(',', $selectedTagsArr);
 
-		//var_dump($selectedTagsString, $selectedTagsString, json_encode($params));
-		//die;
 		// 组装成 {field:'username', width:100}
 		$tableHeader = [];
-		// 在 tableHeader 数组最前面插入一个 slug 为 id 的元素
-		// 在数组开头插入新元素
-		$newElement = ['group_tags' => '分组标签'];
-		$header = array_merge($newElement, $header);
-
+		$header = array_merge(array_flip($selectedTags), $header);
 		foreach ($header as $key => $value) {
+			$keyTrim = trim($key);
 			// 拼接成 {field:'id', width:80, sort: true} 的字符串，非json
-			$excelHeader[$key] = self::MAPPING[$key];
-			$tableHeader[self::MAPPING[$key]] = [
-				'slug' => $key,
+			$excelHeader[$keyTrim] = self::MAPPING[$keyTrim];
+			$tableHeader[self::MAPPING[$keyTrim]] = [
+				'slug' => $keyTrim,
 				'layData' => str_replace('"', "'", json_encode(
 					[
-						'field' => $key
+						'field' => $keyTrim
 					], JSON_UNESCAPED_UNICODE
 				))
 			];
