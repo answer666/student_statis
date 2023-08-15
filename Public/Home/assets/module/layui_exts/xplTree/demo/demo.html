@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1">
+		<title>用户#(user.realName)(#(user.userId))权限配置</title>
+		<link  href="/static/layui/css/layui.css" 		media="all" rel="stylesheet">
+		<script src="/static/layui/layui.js"></script>
+		<script src="/static/baidu/baiduTemplate.js"></script>
+		<script src="/static/my/my.js"></script>
+<!-- 		<script src="/static/my/listToTree.js"></script> -->
+		<style type="text/css">
+		body > .layui-container-fluid {
+		    margin: 5px;
+		    background: #fff;
+		}
+		#container > div.col1 {
+		    position: relative;
+		    border: 1px solid #DCDCDC;
+		}
+		#container .l-layout-header {
+		    position: relative;
+		    padding-bottom: 4px;
+		    color: #183152;
+		    font-weight: bold;
+		    line-height: 30px;
+		    background: #fff;
+		    border-bottom: 1px solid #eee;
+		    overflow: hidden;
+		    cursor: pointer;
+		}
+
+		.col2,.col3 {
+		    margin-left: -1px;
+ 		    border: 1px solid #DCDCDC;
+		}
+		#container > div {
+		    padding: 10px;
+		}
+		.l-scroll{
+			overflow: auto;
+		}
+		.layui-form-radio{
+			margin-top: 0px;
+			margin-right: 2px;
+		}
+		</style>
+	</head>
+	<body>
+	<div class="layui-container-fluid">
+		<div id='container' class="layui-row  layui-form" >
+			<div class="layui-col-xs12 layui-col-sm4 layui-col-md3 div-scroll col1" >
+				 <div class="l-layout-header ">
+				 	角色树
+				 	<div class="optRadio" style="display: inline;margin-left: 20px;">
+				 		<input type="radio" name="optRadio" value="csxz" title="初始选择">
+						<input type="radio" name="optRadio" value="qbxz" title="全部选择">
+						<input type="radio" name="optRadio" value="qbqx" title="全部取消" >
+				 	</div>
+				 </div>
+				 <div class="l-scroll " style="">
+				 	<div id="roleTreeDiv" style=""></div>
+		         </div>
+		     </div>
+		     <div class="layui-col-xs12 layui-col-sm4 layui-col-md4 div-scroll col2"  >
+				 <div class="l-layout-header">
+				 菜单树
+				 	<div class="optCheckbox" style="display: inline;margin-left: 20px;">
+				 		<input type="checkbox" name="optCheckbox1" value="jxsxz" idx="1" lay-skin="primary" title="仅显示选中">
+				 	</div>
+				 </div>
+				 <div class="l-scroll " style="">
+				 	<div id="menuTreeDiv" style=""></div>
+		         </div>
+		     </div>
+			<div class="layui-col-xs12 layui-col-sm4 layui-col-md5 col3" id="maingrid" position='center'>
+		    	<div class="l-layout-header">
+		    	权限树
+		    		<div class="optCheckbox" style="display: inline;margin-left: 20px;">
+				 		<input type="checkbox" name="optCheckbox2" value="jxsxz" idx="2" lay-skin="primary" title="仅显示选中">
+				 	</div>
+		    	</div>
+				 <div class="l-scroll " style="">
+				 	<div id="apiTreeDiv" style=""></div>
+		         </div>
+		    </div>
+  		</div>
+  		<div class="layui-row" >
+  			<div id="btns" class="layui-input-block" style="margin: 5px;text-align: center;">
+				   <button id="tj" class="layui-btn layui-btn-normal">提交</button>
+				   <button id="qx" class="layui-btn layui-btn-primary">取消</button>
+			</div>
+
+  		</div>
+
+	</div>
+
+	<script>
+	#include("tree.js")
+		#include("configApi.js")
+	</script>
+</body>
+</html>
+

@@ -1,0 +1,6 @@
+
+]	php:S1142}"<This method has 4 returns, which is more than the 3 allowed.(”ôþüÿÿÿÿ8¾Æ–«ž1
+:php:S113"'Add a new line at the end of this file.8¾Æ–«ž1
+tphp:S117j"YRename this local variable "$is_sql" to match the regular expression ^[a-z][a-zA-Z0-9]*$.(µ¸•ö8¾Æ–«ž1
+u	php:S3776"TRefactor this function to reduce its Cognitive Complexity from 26 to the 15 allowed.(˜Å÷Õúÿÿÿÿ8¾Æ–«ž1
+€	php:S1488T"_Immediately return this expression instead of assigning it to the temporary variable "$result".(™ÎÖ¨ÿÿÿÿÿ8¾Æ–«ž1

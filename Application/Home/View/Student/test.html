@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Layui</title>
+	<meta name="renderer" content="webkit">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="stylesheet" href="__HOME__/assets/libs/layui/css/layui.css"  media="all">
+	<style>
+		h2 {
+			padding: 15px;
+			border-bottom: 1px solid #d5d0d0;
+		}
+
+		.layui-layer-dialog .layui-layer-content {
+			padding: 0px;
+		}
+
+		.layui-inline {
+			vertical-align: inherit;
+		}
+
+		.unselect_btn {
+			line-height: 2.4;
+			border: 1px #c7cacb solid;
+			background: #fff;
+			padding: 0 15px;
+			cursor: pointer;
+			margin-right: 15px;
+			color: #969899;
+			border-radius: 2px;
+		}
+
+		.select_btn {
+			line-height: 2.4;
+			background: #4063AE;
+			padding: 0 15px;
+			margin-right: 15px;
+			cursor: pointer;
+			color: #fff;
+			border: none;
+			border: 1px #4063AE solid;
+			border-radius: 2px;
+		}
+
+		.condition_title {
+			text-align: left;
+			padding-right: 10px;
+			font-size: 16px;
+			line-height: 2.4;
+			vertical-align: top;
+			width: 80px;
+		}
+
+		.selectedFairId {
+			background: #EFF1F9;
+			padding: 7px 7px 7px 7px;
+			margin-right: 5px;
+			border-radius: 4px;
+		}
+
+		.del {
+			margin-left: 5px;
+			cursor: pointer;
+			color: #459ae9;
+			text-decoration: none;
+		}
+
+		.del:HOVER {
+			margin-left: 5px;
+			cursor: pointer;
+			color: red;
+			text-decoration: none;
+		}
+
+		.more {
+			border: none;
+			vertical-align: top;
+			color: #4668B0;
+			border-radius: 4px;
+			background: #EFF1F9;
+			width: 80px;
+			height: 30px;
+			margin-top: 6px;
+			cursor: pointer;
+		}
+
+		#search {
+			font-size: 17px;
+			background: #6888F8;
+			line-height: 2.4;
+			border: none;
+			padding: 0 50px;
+			cursor: pointer;
+			margin: 0 auto;
+			color: #fff;
+			border-radius: 4px;
+			display: block;
+			margin-top: 50px;
+		}
+
+		.time_type_div {
+			width: 85px;
+		}
+
+		.time_type_div .layui-select-title input {
+			border: none;
+			color: #4668B0;
+		}
+
+		.time_year_div {
+			width: 75px;
+		}
+
+		.time_year_div .layui-select-title input {
+			border: none;
+			color: #4668B0;
+		}
+
+		.time_detail_div {
+			width: 85px;
+			display: none;
+		}
+
+		.time_detail_div .layui-select-title input {
+			border: none;
+			color: #4668B0;
+		}
+
+		.layui-form-select .layui-edge {
+			border-top-color: #4668B0;
+		}
+		.right-aligned-button {
+			text-align: right;
+		}
+	</style>
+	<!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
+</head>
+<body>
+
+<div class="layui-container">
+	<div class="layui-container">
+		<form class="layui-form" id="tagForm">
+			<div class="layui-form-item">
+				<label class="layui-form-label">标签</label>
+				<div class="layui-input-inline">
+					<div class="tags-container" id="selectedTagList"></div>
+				</div>
+			</div>
+			<div class="layui-btn layui-btn-radius layui-btn-primary layui-btn-xs" id="addTagBtn">
+				<i class="layui-icon layui-icon-add-circle"></i>
+				<span>新建标签</span>
+			</div>
+		</form>
+	</div>
+
+	<div id="tagSelectLayer" style="display: none;">
+		<div class="layui-form" id="tagSelectForm">
+			<div class="layui-form-item" id="tagOptions"></div>
+			<div class="layui-btn-container right-aligned-button">
+				<button class="layui-btn layui-btn-normal" lay-submit lay-filter="submitTags">确认</button>
+			</div>
+		</div>
+	</div>
+
+
+
+</div>
+<!--<script src="__HOME__/assets/libs/layui/layui.js" charset="utf-8"></script>-->
+<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+<!-- $ = layui.$; -->
+<script>
+
+	layui.use(['form', 'layer'], function() {
+		const form = layui.form;
+		const layer = layui.layer;
+		$ = layui.$;
+
+		const tags = ["项目1", "项目2", "项目3"];
+		const tagOptions = document.getElementById("tagOptions");
+		tags.forEach(tag => {
+			const checkboxDiv = document.createElement("div");
+			checkboxDiv.classList.add("layui-form-item");
+			checkboxDiv.setAttribute("style", "margin: 8px;")
+
+			const checkbox = document.createElement("input");
+			checkbox.type = "checkbox";
+			checkbox.name = "selectedTags";
+			checkbox.title = tag;
+			checkbox.setAttribute("lay-skin", "primary")
+			checkboxDiv.appendChild(checkbox);
+
+			// const label = document.createElement("label");
+			// label.classList.add("layui-form-label");
+			// label.textContent = tag;
+			// checkboxDiv.appendChild(label);
+			tagOptions.appendChild(checkboxDiv);
+		});
+
+		document.getElementById("addTagBtn").addEventListener("click", function() {
+			layer.open({
+				type: 1,
+				title: "选择标签",
+				content: $("#tagSelectLayer"),
+				area: ['50%', 'auto'],
+
+			});
+		});
+
+		form.on('submit(submitTags)', function(data) {
+			const selectedTags = [];
+			$("input[name='selectedTags']:checked").each(function() {
+				selectedTags.push($(this).attr("title"));
+			});
+
+			const selectedTagList = document.getElementById("selectedTagList");
+			selectedTagList.innerHTML = ""; // 清空已选项列表
+
+			selectedTags.forEach(tag => {
+				const div = document.createElement("div");
+				div.classList.add("layui-btn", "layui-btn-primary", "layui-btn-xs");
+				div.textContent = tag;
+				selectedTagList.appendChild(div);
+			});
+
+			layer.closeAll();
+			return false;
+		});
+
+		// 触发一次初始渲染
+		form.render();
+	});
+
+</script>
+
+</body>
+</html>
