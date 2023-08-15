@@ -281,6 +281,7 @@
 	// 控制查询条件是否展示
 	layui.use(['form'], function () {
 		var form = layui.form;
+		$ = layui.$;
 		form.on('radio(radio-type)', function (data) {
 			var formContainer = document.getElementById('formContainer');
 			if (data.value === 'yes') {
