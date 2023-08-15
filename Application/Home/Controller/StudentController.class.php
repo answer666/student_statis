@@ -129,11 +129,13 @@ class StudentController extends BaseController {
 		//system("zip downloaded_files123.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
 		//die;
 		system($command);
-
+		ob_clean();
 		// 设置响应头的 Content-Type
 		// 设置响应头的 Content-Type，包括字符编码
-		//header("Content-Type: application/zip; charset=utf-8");
+		header("Content-Type: application/zip; charset=utf-8");
 		header("Content-Type: application/octet-stream");
+		header("Content-Type: application/force-download");
+
 		// 设置响应头的 Content-Disposition，指示浏览器下载附件
 		header("Content-Disposition: attachment; filename=$zipFileName");
 		// 设置响应头的 Content-Length，指示文件大小
