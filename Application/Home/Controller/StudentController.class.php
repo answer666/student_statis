@@ -120,10 +120,12 @@ class StudentController extends BaseController {
 		$fileName = SELF_ROOT_PATH . $fileName;
 		// 压缩 $fileName
 		if (!empty($secret)) {
-			$command = "zip -P $secret -O CP936 $zipFileName -j $fileName";
+			$command = "zip -P $secret $zipFileName -j $fileName";
 		} else {
-			$command = "zip -O CP936 $zipFileName -j $fileName";
+			$command = "zip $zipFileName -j $fileName";
 		}
+		var_dump($command);
+		die;
 		system($command);
 
 		// 设置响应头的 Content-Type
