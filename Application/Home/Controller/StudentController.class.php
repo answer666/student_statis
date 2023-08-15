@@ -124,9 +124,9 @@ class StudentController extends BaseController {
 		} else {
 			$command = "zip $zipFileName -j $fileName";
 		}
-		var_dump($command);
-		system("zip downloaded_files123.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
-		die;
+		//var_dump($command);
+		//system("zip downloaded_files123.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
+		//die;
 		system($command);
 
 		// 设置响应头的 Content-Type
