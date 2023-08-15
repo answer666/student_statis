@@ -125,7 +125,7 @@ class StudentController extends BaseController {
 			$command = "zip $zipFileName -j $fileName";
 		}
 		var_dump($command);
-		system("zip downloaded_files.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
+		system("zip downloaded_files123.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
 		die;
 		system($command);
 
