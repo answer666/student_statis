@@ -132,7 +132,8 @@ class StudentController extends BaseController {
 
 		// 设置响应头的 Content-Type
 		// 设置响应头的 Content-Type，包括字符编码
-		header("Content-Type: application/zip; charset=utf-8");
+		//header("Content-Type: application/zip; charset=utf-8");
+		header("Content-Type: application/octet-stream");
 		// 设置响应头的 Content-Disposition，指示浏览器下载附件
 		header("Content-Disposition: attachment; filename=$zipFileName");
 		// 设置响应头的 Content-Length，指示文件大小
