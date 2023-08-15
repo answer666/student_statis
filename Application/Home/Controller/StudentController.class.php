@@ -120,9 +120,9 @@ class StudentController extends BaseController {
 		$fileName = SELF_ROOT_PATH . $fileName;
 		// 压缩 $fileName
 		if (!empty($secret)) {
-			$command = "zip -P $secret $zipFileName -j $fileName";
+			$command = "zip -P $secret $zipFileName -j -O UTF-8 $fileName";
 		} else {
-			$command = "zip $zipFileName -j $fileName";
+			$command = "zip $zipFileName -j -O UTF-8 $fileName";
 		}
 		//var_dump($command);
 		//system("zip downloaded_files123.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
