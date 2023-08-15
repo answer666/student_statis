@@ -116,13 +116,14 @@ class StudentController extends BaseController {
 		}
 		$fileName = date('YmdHis') . rand(1000, 9999) . '.xlsx';
 		$this->downloadExcel($title, $result, $fileName, 1);
+		// 创建一个压缩包
 		$zipFileName = 'downloaded_files.zip';
 		$fileName = SELF_ROOT_PATH . $fileName;
 		// 压缩 $fileName
 		if (!empty($secret)) {
-			$command = "zip -P $secret $zipFileName -j -O UTF-8 $fileName";
+			$command = "zip -P $secret $zipFileName -j $fileName";
 		} else {
-			$command = "zip $zipFileName -j -O UTF-8 $fileName";
+			$command = "zip $zipFileName -j $fileName";
 		}
 		//var_dump($command);
 		//system("zip downloaded_files123.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
@@ -130,7 +131,8 @@ class StudentController extends BaseController {
 		system($command);
 
 		// 设置响应头的 Content-Type
-		header("Content-Type: application/zip");
+		// 设置响应头的 Content-Type，包括字符编码
+		header("Content-Type: application/zip; charset=utf-8");
 		// 设置响应头的 Content-Disposition，指示浏览器下载附件
 		header("Content-Disposition: attachment; filename=$zipFileName");
 		// 设置响应头的 Content-Length，指示文件大小
