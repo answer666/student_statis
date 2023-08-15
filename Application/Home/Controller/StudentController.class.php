@@ -81,7 +81,6 @@ class StudentController extends BaseController {
 			$this->write->writeToFile($fileName);
 		} else if ($type == 2) { //浏览器下载文件
 			$this->write->writeToStdOut();
-			//            echo $this->write->writeToString();
 			exit(0);
 		} else {
 			die('文件下载方式错误~');
@@ -115,7 +114,11 @@ class StudentController extends BaseController {
 		$zipFileName = 'downloaded_files.zip';
 		$fileName = SELF_ROOT_PATH . $fileName;
 		// 压缩 $fileName
-		$command = "zip -P $secret $zipFileName -j $fileName";
+		if (!empty($secret)) {
+			$command = "zip -P $secret $zipFileName -j $fileName";
+		} else {
+			$command = "zip $zipFileName -j $fileName";
+		}
 		//Log::record('command: ' . $command, 'debug');
 		system($command);
 
@@ -130,17 +133,11 @@ class StudentController extends BaseController {
 		flush();
 		@readfile($zipFileName);
 		unlink($zipFileName);
+		unlink($fileName);
 		exit;
-
-		//header('Content-Type: application/zip');
-		//header("Content-disposition: attachment; filename=".$zipFileName);
-		//header('Content-Length: ' . filesize($zipFileName));
-		//readfile($zipFileName);
-		//unlink($zipFileName);
-
 	}
 
-	public function export_excel()
+	public function exportExcel()
 	{
 		$id = I('get.param'); // 自增id;
 		$logRes = $this->queryLogModel->where(['id' => $id])->find();
@@ -149,43 +146,9 @@ class StudentController extends BaseController {
 		$result = $this->model->query($sql);
 		$fileName = date('YmdHis') . '_statis' . '.xlsx';
 		$this->downloadExcel($title, $result, $fileName);
-		die;
+		exit();
 	}
 
-
-	public function export_excel2()
-	{
-		$id = I('get.param'); // 自增id;
-		$logRes = $this->queryLogModel->where(['id' => $id])->find();
-		$sql = $logRes['query_sql'];
-		$title = json_decode($logRes['header_mapping'], true);
-		$result = $this->model->query($sql);
-		//var_dump($title, $result);die;
-		$fileName = date('YmdHis') . '_statis' . '.xlsx';
-		$this->downloadExcel($title, $result, $fileName);
-		die;
-
-		$array = array('http://12.12.12.12/dgb/Public/Upload/01.jpg','http://12.12.12.12/dgb/Public/Upload/03.jpg','http://12.12.12.12/dgb/Public/Upload/02.jpg');
-		$tmpFile = tempnam('/temp', '');  //临时文件
-		$zip = new \ZipArchive();  //php内置的压缩类
-		$zip->open($tmpFile, \ZipArchive::CREATE);
-		$zip->setPassword('1234');  //设置密码
-		foreach ($array as $value) {
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_POST, 0);
-			curl_setopt($ch, CURLOPT_URL, $value);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-			$fileContent = curl_exec($ch);
-			curl_close($ch);
-			$zip->addFromString(basename($value), $fileContent);  //将文件循环压缩到压缩包
-		}
-		$zip->close();
-		header('Content-Type: application/zip');
-		header("Content-disposition: attachment; filename=file.zip");
-        header('Content-Length: ' . filesize($tmpFile));  
-        readfile($tmpFile);
-        unlink($tmpFile);
-    }
 	// index 历史查询记录回看
 	public function resultByID()
 	{
@@ -339,9 +302,6 @@ class StudentController extends BaseController {
 			->group('grade, class')
 			->select();
 		return $this->ajaxReturn(message('success', 'success', $result));
-
-		// 打印日志
-		Log::record('搜索参数：' . json_encode($params));
 	}
 
 	public function saveQueryLog()

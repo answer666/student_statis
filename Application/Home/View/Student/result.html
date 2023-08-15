@@ -80,10 +80,13 @@
 						area: ['50%', '50%'], //自定义文本域宽高
 						yes: function(index, layero){
 							// 校验密码 把密码做个强校验 必须是6到10位的纯字母数字 不能有别的符号 确保安全
-							var reg = /^[a-zA-Z0-9]{6,10}$/;
-							if (!reg.test(layero.find(".layui-layer-input").val())) {
-								layer.msg('密码格式不正确：必须是6到10位的纯字母数字');
-								return false;
+							// 如果密码存在才去校验，否则不校验
+							if (layero.find(".layui-layer-input").val() !== '') {
+								var reg = /^[a-zA-Z0-9]{6,10}$/;
+								if (!reg.test(layero.find(".layui-layer-input").val())) {
+									layer.msg('密码格式不正确：必须是6到10位的纯字母数字');
+									return false;
+								}
 							}
 
 							// layer.close(index);
@@ -105,7 +108,7 @@
 						// 取 input 的值, 而且要注意不要被转义
 						param: $('input[name="queryLogID"]').val(),
 					};
-					window.location.href = 'export_excel?' + $.param(params);  // 发起导出请求
+					window.location.href = 'exportExcel?' + $.param(params);  // 发起导出请求
 					break;
 				case 'getData':
 					layer.prompt({
