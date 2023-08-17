@@ -1,0 +1,497 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>dynamicCondition 管理</title>
+  <link  href="http://218.76.157.94:9090/static/jquery-ui/jquery-ui.min.css" 		media="all" rel="stylesheet">
+  <link  href="http://218.76.157.94:9090/static/layui/css/layui.css" 		media="all" rel="stylesheet">
+  <link  href="http://218.76.157.94:9090/static/my/my.css" 		media="all" rel="stylesheet">
+  <script src="http://218.76.157.94:9090/static/layui/layui.js"></script>
+  <script src="http://218.76.157.94:9090/static/baidu/baiduTemplate.js"></script>
+  <script src="http://218.76.157.94:9090/static/my/xplAjax.js"></script>
+<!--  <script src="http://218.76.157.94:9090/static/layui-extend/dynamicCondition/dcConfig.js?v=4.1.1"></script>-->
+  <script src="http://218.76.157.94:9090/static/my/tableMobileExt.js?v=4"></script>
+  <script src="http://218.76.157.94:9090/static/my/my.js?v=20221006&v=1"></script>
+<!--  <script src="http://218.76.157.94:9090/static/layui-extend/dynamicCondition/dynamicCondition.js?v=4.1.1"></script>-->
+  <script>
+    var appName = "xpl";
+  </script><style type="text/css">
+  .xpl-dc-unpopup .conditionRow .conditionValue[field="DynamicCondition.zzmm"] {
+    width: 320px;
+  }
+</style>
+</head>
+<body >
+<div id="errMsg">请清空下缓存后，刷新下页面。由于缓存js可能导致页面错误。</div>
+<div id="noTableDiv">
+  <div id="msg" style="margin-top:10px;margin-left:10px;"></div>
+
+  <ul id="dynamicCondition" style="display:none;">
+    <li field="DynamicCondition.id" title="id" edit="text" datatype="int" layVerify="number" ></li>
+    <li field="DynamicCondition.logicDel" title="是否有效" ops="equal" edit="radio" templet="是:N|否:Y" layVerify=""></li>
+    <li field="DynamicCondition.name" title="姓名" ops="equal,like,end" datatype="string" edit="text" placeholder="请输入姓名" layVerify=""></li>
+    <li field="DynamicCondition.sex" title="性别" edit="select" layVerify="number" templet="#dict-sex"></li>
+    <li field="DynamicCondition.birthday" title="生日" edit="date" layVerify=""></li>
+    <li field="birthday" title="生日1" ops="between" edit="date"  layVerify=""></li>
+    <li field="DynamicCondition.phone" title="手机号码" edit="text" layVerify=""></li>
+    <li field="DynamicCondition.email" title="邮箱"  edit="text" layVerify=""></li>
+    <li field="DynamicCondition.province" title="省份" datatype="string" ops="equal" edit="selectProvince" templet="#dict-province"  layVerify="" allowDel="false"></li>
+    <li field="DynamicCondition.city" title="城市" ops="equal" edit="selectCity" templet="#dict-city" layVerify="" allowDel="false"></li>
+    <li field="DynamicCondition.goodsClassifyId" title="商品分类" ops="equal" edit="treeSelect" layVerify=""
+        url="/xpl/demo/dynamicCondition/treeSelect"
+    ></li>
+    <li field="DynamicCondition.zzmm" title="政治面貌" ops="in" edit="checkbox" templet="#dict-zzmm" layVerify=""></li>
+  </ul>
+  <script type="text/html" id="toolbarBts">
+    <div>
+      <a class="layui-btn layui-btn-xs" onclick="dynamicConditionSave()" style="display:none;">新增</a>
+      <a class="layui-btn layui-btn-xs" onclick="dynamicConditionQuery()" >查询</a>
+      <a class="layui-btn layui-btn-xs" onclick="qh()">切换为弹窗/非弹窗模式</a>
+      <a class="layui-btn layui-btn-xs" href="/xpl/demo/dynamicCondition/nestedQuery">嵌套条件查询</a>
+      <a class="layui-btn layui-btn-xs" href="/xpl/demo/dynamicCondition/index2">切换为simple模式</a>
+      <a class="layui-btn layui-btn-xs" href="/static/layui-extend/dynamicCondition/demo/index.htm">返回静态页面</a>
+    </div>
+  </script>
+  <table class="layui-hide" id="listTable" lay-filter="listMainTable"></table>
+
+  <script type="text/javascript">
+    layui.config({
+      version:"4.1.1",
+      base: '/static/layui-extend/' //设定扩展的Layui模块的所在目录，一般用于外部模块扩展
+    }).extend({
+      dynamicCondition: 'dynamicCondition/dynamicCondition',
+      treeSelect: 'treeSelect/treeSelect'
+    }).use(['table','form','dynamicCondition','treeSelect'], function(){
+      initLayuiParam(layui);
+
+      var editorProvince = dynamicCondition.createEditor("selectProvince");
+      $.extend( editorProvince ,{
+        createElement:function(item){
+          var selectHtml;
+          if($(item.templet).is("select")){
+            selectHtml = $(item.templet).prop("outerHTML");
+          }else{
+            selectHtml = $(item.templet).html();
+          }
+          return $(selectHtml);
+        }
+        ,getRequestText:function(ele){
+          return  ele.find("option:selected").text();
+        }
+      })
+
+      var editorCity = dynamicCondition.createEditor("selectCity");
+      $.extend( editorCity ,{
+        createElement:function(item){
+          var selJq = $("<select>");
+          selJq.append("<option value=''></option>");
+          return selJq;
+        }
+        ,getRequestText:function(ele){
+          return  ele.find("option:selected").text();
+        }
+      })
+
+      var editorClassifyTree = dynamicCondition.createEditor("goodsClassifyTree");
+      $.extend( editorClassifyTree ,{
+        createElement:function(item){
+          var randomId= "rd" + (Math.random()+"").substr(2);
+          var ele = $("<div>");
+          ele.append('<input type="hidden" name="goodsClassifyId"  class="layui-input " />');
+          ele.append('<input type="text" id="'+randomId+'"  lay-filter="'+randomId+'"  class="layui-input classifyTree">');
+          return ele;
+        }
+        ,fillElement:function(ele, val){
+          $(ele).find("input[name='goodsClassifyId']").val(val.value);
+        }
+        ,getRequestValue:function(ele){
+          return $(ele).find("input[name='goodsClassifyId']").val();
+        }
+        ,getRequestText:function(ele){
+          return $(ele).find("input[name='goodsClassifyId']").attr("goodsClassifyName");
+        }
+        ,render:function(ele){
+          //下拉树初始化
+          var randomId = $(ele).find(".classifyTree").attr("id");
+          var goodsClassifyId = $(ele).find("input[name='goodsClassifyId']").val();
+          goodsClassifySelect(randomId,goodsClassifyId);
+        }
+      })
+
+      //单选查询条件
+      var editorRadio = dynamicCondition.createEditor("editorRadio");
+      $.extend( editorRadio ,{
+        createElement:function(item){
+          var randomId= (Math.random()+"").substr(2);
+          var ele = $("<div style='text-align: center;'>");
+          ele.append('<input type="radio" name="rd'+randomId+'" value="N" title="是"/>');
+          ele.append('<input type="radio" name="rd'+randomId+'" value="Y" title="否" />');
+          return ele;
+        }
+        ,fillElement:function(ele, val){
+          $(ele).find('input[value="'+val.value+'"]').prop('checked', true);
+        }
+        ,getRequestValue:function(ele){
+          return  ele.find("input:checked").val();
+        }
+        ,getRequestText:function(ele){
+          return  ele.find("input:checked").attr("title");
+        }
+      })
+
+      var dc = dynamicCondition.create({
+        //通过容器选择器传入，也可以$("#dynamicCondition"),或者document.getElementById("dynamicCondition")
+        elem:"#dynamicCondition"
+        ,tableId:"listTableId"
+        ,conditionTextId:"#msg"
+        ,extendBtns:function(btnDivJq, instance){  //扩展添加按钮
+          btnDivJq.append($('<a class="layui-btn " onclick="dynamicConditionSave()" style="display:none;">新增</a>'));
+          btnDivJq.append($('<a class="layui-btn " onclick="qh()">'+
+                  (instance.config.displayModel == "unpopup" ? "弹窗" : "非弹窗")
+                  +'模式</a>'));
+          btnDivJq.append($('<a class="layui-btn " href="/xpl/demo/dynamicCondition/nestedQuery">嵌套条件查询</a>'));
+          btnDivJq.append($('<a class="layui-btn " href="/xpl/demo/dynamicCondition/index2">'+
+                  (instance.config.type == "complex" ? "简单" : "复杂")
+                  +'模式</a>'));
+          btnDivJq.append($('<a class="layui-btn " href="/static/layui-extend/dynamicCondition/demo/index.htm">静态demo</a>'));
+        }
+        //  		,popupMsgText: "查询条件："
+        ,popupMsgText: ""
+        ,popupBtnsWidth: 700
+        ,popupShowQueryBtn: true
+        ,unpopupBtnswidth: 700
+        ,unpopupShowAddBtn: true
+        ,opsList:["equal","like","between","start","end","unequal","empty","greater_than","less_than","in"]
+        ,afterOpen:function(_dc){
+          //下拉框联动
+          form.on('select(province)', function(data){
+            var params={province:data.value};
+            $.post("/xpl/demo/dynamicCondition/getCityList",params,function(data){
+              if(data.code == 0){
+                var eleJq = _dc.getRowDivs("DynamicCondition.city")[0].eleJq;
+                eleJq.html("<option value=''></option>");
+                $.each(data.otherData.cityList, function(key, val) {
+                  var option1 = $("<option>").val(val.value).text(val.label);
+                  eleJq.append(option1);
+                });
+                form.render('select');
+                //$("#dictType").get(0).selectedIndex=0;
+              }
+            });
+          })
+          //如果省份有值，则需要初始化城市下拉框
+          var provinceVal =  _dc.getVal("DynamicCondition.province");
+          if(provinceVal){
+            var params={province:provinceVal};
+            $.post("/xpl/demo/dynamicCondition/getCityList",params,function(data){
+              if(data.code == 0){
+                var eleJq = _dc.getRowDivs("DynamicCondition.city")[0].eleJq;
+                eleJq.html("<option value=''></option>");
+                $.each(data.otherData.cityList, function(key, val) {
+                  var option1 = $("<option>").val(val.value).text(val.label);
+                  eleJq.append(option1);
+                });
+                eleJq.val(eleJq.attr("oldVal"));
+                form.render('select');
+                //$("#dictType").get(0).selectedIndex=0;
+              }
+            });
+          }
+
+        }
+      });
+      dc.setDisplayModel('unpopup');
+      //  dc.setHideCondition($("#hideCondtion").html());
+      //  dc.setCondition($("#initCondtion").html());
+      dc.setCondition([["DynamicCondition.province",null,""],["DynamicCondition.city",null,""]
+        ,["DynamicCondition.goodsClassifyId",null,2643],["DynamicCondition.name","like","张三"]
+        ,["DynamicCondition.sex",null,{value:1}],["DynamicCondition.birthday","between","2018-01-01","2018-12-31"]
+        ,["DynamicCondition.zzmm",null,''],["DynamicCondition.logicDel",null,'N']
+      ]);
+      //监听工具条
+      table.on('tool(listMainTable)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'logicDel'){
+          deleteModel("#frm", "/xpl/demo/dynamicCondition/logicDel", data);
+        } else if(obj.event === 'edit'){
+          var data = {obj:data}
+          addOrEdit("edit","/xpl/demo/dynamicCondition/update",data);
+          form.render();
+          goodsClassifySelect("edit-goodsClassifyTree", data.obj.goodsClassifyId);
+          selectProvince();
+        }
+      });
+      form.on('switch(logicDel)', function(obj){
+        logicDelSwitch("/xpl/demo/dynamicCondition/logicDel",'listTableId',obj)
+      });
+      var tableDivHeight = 'full-'+ ($("#noTableDiv").height()+ 10);
+      dynamicCondition.getInstance().buildCacheCondition();
+      table.render({
+        elem: '#listTable'
+        ,url:'/xpl/demo/dynamicCondition/list'
+        ,method:"post"
+        ,where: dynamicCondition.getInstance().buildRequestData()
+        ,sortType:'server'
+        ,height: tableDivHeight
+        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+        //,toolbar: '#toolbarBts'
+        ,cols: [[
+          {field:'layui_seq', title: '序号',width:80,align:'center' }
+          ,{field:'id', title: 'id',sort:true}
+          ,{field:'name', title: '姓名',sort:true}
+          ,{field:'sex', title: '性别',sort:true,templet: '<div>{{ getDictLabel("dict-sex", d.sex) }}</div>'}
+          ,{field:'zzmm', title: '政治面貌',sort:true,templet: '<div>{{ getDictLabel("dict-zzmm", d.zzmm) }}</div>'}
+          ,{field:'birthday', title: '生日',sort:true}
+          ,{field:'phone', title: '手机号码',sort:true}
+          ,{field:'email', title: '邮箱',sort:true}
+          ,{field:'province',  title: '省份',sort:true}
+          ,{field:'city',  title: '城市',sort:true}
+          ,{field:'goodsClassifyName',  title: '商品分类',sort:true}
+          ,{field:'logicDel', title: '有效',width:80,templet: '#logicDelTpl',sort:true}
+          ,{fixed: 'right', width:178, align:'center', toolbar: '#barBtns',title: '操作'} //单元格内容水平居中
+        ]]
+        ,id: 'listTableId'
+        ,page: true
+        ,limit:15
+      });
+
+      table.on('sort(listMainTable)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+        tableReloadForSort($,"#frm",table,null,obj);
+      });
+      $("#errMsg").hide();
+    });
+
+    /***
+     * 商品分类下拉树
+     */
+    function goodsClassifySelect(eleId,goodsClassifyId){
+      treeSelect.render({
+        // 选择器
+        elem: '#'+eleId,
+        // 数据
+        data: "/xpl/demo/dynamicCondition/treeSelect",
+        // 异步加载方式：get/post，默认get
+        type: 'post',
+        // 占位符
+        placeholder: '请选择商品分类',
+        // 是否开启搜索功能：true/false，默认false
+        search: true,
+        // 点击回调
+        click: function(d){
+          $("#"+eleId).parent().find("input[name='goodsClassifyId']").val(d.current.id);
+          $("#"+eleId).parent().find("input[name='goodsClassifyId']").attr("goodsClassifyName",d.current.name);
+          //            console.log(d);
+        },
+        // 加载完成后的回调函数
+        success: function (d) {
+          //            console.log(d);
+          //            选中节点，根据id筛选
+          if(goodsClassifyId){
+            treeSelect.checkNode(eleId, goodsClassifyId);
+          }
+        }
+      });
+    }
+
+    /***
+     * 查询
+     */
+    function dynamicConditionQuery(){
+      dynamicCondition.getInstance().open();
+    }
+    /***
+     * 新增记录
+     */
+    function dynamicConditionSave(){
+      var data = {obj:{}}
+      addOrEdit("add","/xpl/demo/dynamicCondition/save",data);
+      form.render();
+      goodsClassifySelect("edit-goodsClassifyTree", null);
+      selectProvince();
+    }
+    /***
+     * 新增或编辑记录 省份/城市下拉框级联绑定
+     */
+    function selectProvince(){
+      //下拉框联动
+      form.on('select(edit-province)', function(data){
+        var params={province:data.value};
+        $.post("/xpl/demo/dynamicCondition/getCityList",params,function(data){
+          if(data.code == 0){
+            var eleJq = $("#frmEdit select[name='city']");
+            eleJq.html("<option value=''></option>");
+            $.each(data.otherData.cityList, function(key, val) {
+              var option1 = $("<option>").val(val.value).text(val.label);
+              eleJq.append(option1);
+            });
+            form.render('select');
+            //$("#dictType").get(0).selectedIndex=0;
+          }
+        });
+      })
+      //如果省份有值，则需要初始化城市下拉框
+      var provinceVal =  $("#frmEdit select[name='province']").val();
+      if(provinceVal){
+        var params={province:provinceVal};
+        $.post("/xpl/demo/dynamicCondition/getCityList",params,function(data){
+          if(data.code == 0){
+            var eleJq = $("#frmEdit select[name='city']");
+            eleJq.html("<option value=''></option>");
+            $.each(data.otherData.cityList, function(key, val) {
+              var option1 = $("<option>").val(val.value).text(val.label);
+              eleJq.append(option1);
+            });
+            eleJq.val(eleJq.attr("oldVal"));
+            form.render('select');
+            //$("#dictType").get(0).selectedIndex=0;
+          }
+        });
+      }
+    }
+
+    function qh(){
+      if("popup" == dynamicCondition.getInstance().config.displayModel){
+        dynamicCondition.getInstance().setDisplayModel("unpopup");
+      }else{
+        dynamicCondition.getInstance().setDisplayModel("popup");
+      }
+    }
+
+  </script>
+  <script id='add_or_edit_form' type="text/html">
+    <form id="frmEdit" class="layui-form" lay-filter="frm" >
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >id</label>
+        <div class="layui-input-inline edit-form-input">
+          <input type="text" name="id" lay-verify=""
+                 placeholder="" autocomplete="off" class="layui-input  db-primaryKey  db-autoIncrement  "  value="<%= obj.id == null? "": obj.id%>">
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >省份</label>
+        <div class="layui-input-inline edit-form-input">
+          <select name='province' lay-filter='edit-province'>
+            <option value=""></option>
+            <option value="浙江省">浙江省</option>
+            <option value="广东省">广东省</option>
+          </select>
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >城市</label>
+        <div class="layui-input-inline edit-form-input">
+          <select name="city" oldVal="<%= obj.city == null? "": obj.city%>"><option></option></select>
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >商品分类</label>
+        <div class="layui-input-inline edit-form-input">
+          <input type="hidden" name="goodsClassifyId" lay-verify=""
+                 placeholder="" autocomplete="off" class="layui-input  "  value="<%= obj.goodsClassifyId == null? "": obj.goodsClassifyId%>">
+          <input type="text" id="edit-goodsClassifyTree"  lay-filter="edit-goodsClassifyTree"  class="layui-input">
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >姓名</label>
+        <div class="layui-input-inline edit-form-input">
+          <input type="text" name="name" lay-verify=""
+                 placeholder="" autocomplete="off" class="layui-input  "  value="<%= obj.name == null? "": obj.name%>">
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >性别</label>
+        <div class="layui-input-inline edit-form-input">
+          <select  name='sex' lay-verify='' lay-search=''>
+            <option value=""></option>
+            <option value="1">男</option>
+            <option value="0">女</option>
+          </select>
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >政治面貌</label>
+        <div class="layui-input-inline edit-form-input">
+          <select  name='zzmm' lay-verify='' lay-search=''>
+            <option value=""></option>
+            <option value="dy">党员</option>
+            <option value="gqty">共青团员</option>
+            <option value="qz">群众</option>
+          </select>
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >生日</label>
+        <div class="layui-input-inline edit-form-input">
+          <input type="text" name="birthday" lay-verify=""
+                 placeholder="" autocomplete="off" class="layui-input  "  value="<%= obj.birthday == null? "": obj.birthday%>">
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >手机号码</label>
+        <div class="layui-input-inline edit-form-input">
+          <input type="text" name="phone" lay-verify=""
+                 placeholder="" autocomplete="off" class="layui-input  "  value="<%= obj.phone == null? "": obj.phone%>">
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item layui-inline">
+        <label class="layui-form-label" >邮箱</label>
+        <div class="layui-input-inline edit-form-input">
+          <input type="text" name="email" lay-verify=""
+                 placeholder="" autocomplete="off" class="layui-input  "  value="<%= obj.email == null? "": obj.email%>">
+        </div>
+      </div>
+      <br/>
+      <div class="layui-form-item" style="display:none;">
+        <div class="layui-input-block">
+          <button id="editPageBtnId" class="layui-btn" lay-submit="" lay-filter="edit-lay-filter">立即提交</button>
+          <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+      </div></form>
+  </script>
+  <script type="text/html" id="barBtns">
+    <a class="layui-btn layui-btn-xs" lay-event="edit" style="display:none;">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="logicDel" style="display:none;">删除</a>
+  </script>
+  <div style="display:none;">
+    <select id='dict-sex' name='sex' lay-verify='' lay-search=''>
+      <option value=""></option>
+      <option value="1">男</option>
+      <option value="0">女</option>
+    </select>
+    <select id='dict-zzmm' name='zzmm' lay-verify='' lay-search=''>
+      <option value=""></option>
+      <option value="dy">党员</option>
+      <option value="gqty">共青团员</option>
+      <option value="qz">群众</option>
+    </select>
+    <select id='dict-province' lay-filter='province'>
+      <option value=""></option>
+      <option value="浙江省">浙江省</option>
+      <option value="广东省">广东省</option>
+    </select>
+  </div>
+  <!-- 定义是否有效的开关 -->
+  <script id="logicDelTpl" type="text/html">
+    <!-- 这里的 checked 的状态是-->
+    <input type="checkbox"  name = "logicDel"  value = {{d.logicDel}} lay-skin="switch" lay-filter="logicDel" lay-text="是|否" {{ d.logicDel == 'N' ? 'checked' : '' }}>
+  </script>
+  <script id="initCondtion" type="text/html">
+    [{"logicalOperator":"and","groupname":"groupname2","subgroupname":"groupname41278259680340446","rowlevel":"0","conditionFieldVal":"DynamicCondition.province","conditionOptionVal":"equal","datatype":"string","conditionValueVal":{"value":"","text":""},"conditionValueLeftVal":{"value":"","text":""},"conditionValueRightVal":{"value":"","text":""}},{"logicalOperator":"and","groupname":"groupname2","subgroupname":"groupname4562658783588114","rowlevel":"0","conditionFieldVal":"DynamicCondition.city","conditionOptionVal":"equal","conditionValueVal":{"value":"","text":""},"conditionValueLeftVal":{"value":"","text":""},"conditionValueRightVal":{"value":"","text":""}},{"logicalOperator":"and","groupname":"groupname2","subgroupname":"groupname7145102822903624","rowlevel":"0","conditionFieldVal":"DynamicCondition.name","conditionOptionVal":"like","datatype":"string","conditionValueVal":{"value":"张三","text":"张三"},"conditionValueLeftVal":{"value":"","text":""},"conditionValueRightVal":{"value":"","text":""}}]
+  </script>
+  <script id="hideCondtion" type="text/html">
+    [{"logicalOperator":"and","groupname":"groupname2","subgroupname":"groupname9181101668913314","rowlevel":"0","conditionFieldVal":"DynamicCondition.province","conditionOptionVal":"equal","datatype":"string","conditionValueVal":{"value":"","text":""},"conditionValueLeftVal":{"value":"","text":""},"conditionValueRightVal":{"value":"","text":""}},{"logicalOperator":"and","groupname":"groupname2","subgroupname":"groupname03241505926701782","rowlevel":"0","conditionFieldVal":"DynamicCondition.city","conditionOptionVal":"equal","conditionValueVal":{"value":"","text":""},"conditionValueLeftVal":{"value":"","text":""},"conditionValueRightVal":{"value":"","text":""}},{"logicalOperator":"and","groupname":"groupname2","subgroupname":"groupname46197182796385294","rowlevel":"0","conditionFieldVal":"DynamicCondition.sex","conditionOptionVal":"equal","conditionValueVal":{"value":"1","text":"男"},"conditionValueLeftVal":{"value":"","text":""},"conditionValueRightVal":{"value":"","text":""}}]
+  </script>
+</body>
+</html>
