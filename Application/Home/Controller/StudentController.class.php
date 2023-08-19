@@ -203,7 +203,7 @@ class StudentController extends BaseController {
 	public function resultByID()
 	{
 		$id = I('get.id'); // 自增id;
-		$type = I('get.queryType'); // 查询类型，如果是 history 就代表查看历史，不能新增只能更新了。
+		$type = I('get.type'); // 查询类型，如果是 history 就代表查看历史，不能新增只能更新了。
 		$logRes = $this->queryLogModel->where(['id' => $id])->find();
 		// 选择的分组标签，和查询结果分离开。 属于额外的信息
 		$selectedTagsString = $logRes['group_tags'];
@@ -270,7 +270,7 @@ class StudentController extends BaseController {
 				'query_sql' => $sql,
 				'updated_at' => date('Y-m-d H:i:s')
 			]);
-			Log::record('sqlllllll: ' . $this->queryLogModel->getLastSql(), 'debug');
+			//Log::record('sqlllllll: ' . $this->queryLogModel->getLastSql(), 'debug');
 			$id = $queryLogID;
 		} else {
 			//$tableHeader
