@@ -218,10 +218,10 @@
 		<div class="layui-form-item">
 			<label class="layui-form-label">统计字段: </label>
 				<div class="layui-input-block">
-					<input type="checkbox" class="checkbox-item" name="fields[number]" title="人数" lay-skin="primary" checked>
-					<input type="checkbox" class="checkbox-item" name="fields[max_score]" title="最高分" lay-skin="primary" checked>
-					<input type="checkbox" class="checkbox-item" name="fields[min_score]" title="最低分" lay-skin="primary" checked>
-					<input type="checkbox" class="checkbox-item" name="fields[avg_score]" title="平均分" lay-skin="primary" checked>
+					<input type="checkbox" class="checkbox-item" name="fields[number]" title="人数" lay-skin="primary" lay-filter="single-choose">
+					<input type="checkbox" class="checkbox-item" name="fields[max_score]" title="最高分" lay-skin="primary" >
+					<input type="checkbox" class="checkbox-item" name="fields[min_score]" title="最低分" lay-skin="primary" >
+					<input type="checkbox" class="checkbox-item" name="fields[avg_score]" title="平均分" lay-skin="primary" >
 				</div>
 		</div>
 
@@ -266,6 +266,7 @@
 	// 	queryConditionDiv.style.width = '30vw';
 	// }
 
+
 	// 控制查询条件是否展示
 	layui.use(['form'], function () {
 		var form = layui.form;
@@ -278,7 +279,6 @@
 				formContainer.style.display = 'block';
 			}
 		});
-
 		// radio-type 默认选中是
 		// $("input[name='radio-type'][value='yes']").attr("checked", true);
 		//如果你的 HTML 是动态生成的，自动渲染就会失效
@@ -472,6 +472,28 @@
 				dc.setCondition(decodeURIComponent(initDataObj.condition));
 				$('#formContainer').show()
 			}
+			// 根据数据
+			// defaultValue = initDataObj.fields
+			// 遍历默认值对象，根据键名设置复选框选中状态
+			// 获取所有的复选框
+			// var checkboxes = document.querySelectorAll('.checkbox-item');
+			// 遍历所有复选框
+			// 遍历默认值对象，根据键名设置复选框选中状态
+			// 遍历默认值对象，根据键名设置复选框选中状态
+			for (var key in initDataObj.fields) {
+				if (initDataObj.fields.hasOwnProperty(key)) {
+					var checkbox = $('input[name="fields[' + key + ']"]');
+					if (checkbox.length && initDataObj.fields[key] === 'on') {
+						checkbox.prop('checked', true);
+					}
+				}
+			}
+			// 重新渲染表单元素
+			form.render('checkbox');
+		} else {
+			// 没有 initData  有的话 就要根据数据库匹配了
+			// 默认宣布选中
+			$('.checkbox-item').prop("checked",true);
 		}
 
 
