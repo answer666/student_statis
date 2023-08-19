@@ -55,8 +55,6 @@ class BaseController extends Controller
 
 	/**
      * 后台入口
-     * @author 牧羊人
-     * @since 2021/1/17
      */
     public function index()
     {
@@ -72,6 +70,16 @@ class BaseController extends Controller
                 $this->assign($key, $val);
             }
         }
+		// 如果是列表页，则初始化数据， 不展示已经查询过的数据条件展示在页面，
+	    // 因为与需求不符合。
+	    $initData = '';
+	    if (I('get.')) {
+			$initData = 'BACK';
+	    }
+		// 如果 type == history-edit 则是历史记录回看的修改获取的
+		$type = I('get.type');
+		$this->assign('type', $type);
+		$this->assign('initData', $initData);
 		$this->assign('total', $this->service->getTotal());
         $this->render();
     }
