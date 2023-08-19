@@ -26,8 +26,8 @@ layui.define(['jquery'], function (exports) {
 		unpopupShowAddBtn: false, //非弹窗模式下，是否显示新增条件按钮。之前版本默认是不显示的
 		//可以自定义操作选项，特例between会创建2个编辑控件；empty和notempty不会创建编辑控件
 		opsMap: {"greater_than":"大于","less_than":"小于"},//新增操作选项，
-		// nestedQuery: true,//是否支持嵌套查询。默认false
-		opsList:["equal","unequal"],//操作选项列表
+		nestedQuery: true,//是否支持嵌套查询。默认false
+		opsList:["equal","unequal", "empty","notempty"],//操作选项列表
 		extraParams:[],//请求时会附带<li>标签定义的额外的参数
 		extendBtns:function(btnDivJq, instance){
 			//下面可以添加扩展按钮

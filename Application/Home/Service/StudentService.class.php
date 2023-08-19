@@ -44,14 +44,8 @@ class StudentService extends BaseService
 			->group($field)->select();
 	}
 
-	// 对前端请求的数据二次清洗
-	public function handleData($dataArr)
+	public function handle111($conditions)
 	{
-		// 1. 获取数据
-		// 2. condition
-		//$condition = json_decode($dataArr['condition'], true);
-		$jsonStr = json_decode(urldecode($dataArr['condition']), true)['jsonStr'];
-		$conditions = json_decode($jsonStr, true);
 		$whereConditions = array();
 		$logicalOperator = 'AND'; // 默认逻辑操作符
 
@@ -59,24 +53,109 @@ class StudentService extends BaseService
 			if (isset($condition['logicalOperator'])) {
 				$logicalOperator = strtoupper($condition['logicalOperator']);
 			}
+
 			$conditionFieldVal = $condition['conditionFieldVal'];
 			$conditionOptionVal = $condition['conditionOptionVal'];
 			$conditionValue = $condition['conditionValueVal']['value'];
+
 			$whereCondition = array();
-			if ($conditionOptionVal == 'equal') {
+
+			if ($conditionOptionVal === 'equal') {
 				$whereCondition["$conditionFieldVal"] = $conditionValue;
-			} elseif ($conditionOptionVal == 'unequal') {
+			} elseif ($conditionOptionVal === 'unequal') {
 				$whereCondition["$conditionFieldVal"] = array('NEQ', $conditionValue);
 			}
+
 			$whereConditions[] = $whereCondition;
 		}
 
 		// 构建完整的查询条件
 		$where = array();
 		if (!empty($whereConditions)) {
-			$where['_logic'] = $logicalOperator;
-			$where['_complex'] = $whereConditions;
+			if (count($whereConditions) > 1) {
+				$where['_logic'] = $logicalOperator;
+				$where['_complex'] = $whereConditions;
+			} else {
+				$where = $whereConditions[0];
+			}
 		}
+		return $where;
+	}
+
+	public function handle($conditions)
+	{
+		$whereConditions = array();
+		$logicalOperator = 'AND'; // 默认逻辑操作符
+
+		foreach ($conditions as $condition) {
+			if (isset($condition['logicalOperator'])) {
+				$logicalOperator = strtoupper($condition['logicalOperator']);
+			}
+
+			$conditionFieldVal = $condition['conditionFieldVal'];
+			$conditionOptionVal = $condition['conditionOptionVal'];
+			$conditionValue = $condition['conditionValueVal']['value'];
+
+			$whereCondition = '';
+
+			if ($conditionOptionVal == 'equal') {
+				$whereCondition = "`$conditionFieldVal` = '$conditionValue'";
+			} elseif ($conditionOptionVal == 'unequal') {
+				$whereCondition = "`$conditionFieldVal` <> '$conditionValue'";
+			} elseif ($conditionOptionVal == 'notempty') {
+				// is not null OR != ''
+				$whereCondition = " ( `$conditionFieldVal` IS NOT NULL  OR `$conditionFieldVal` != '' ) ";
+			} elseif ($conditionOptionVal == 'empty') {
+				$whereCondition = " ( `$conditionFieldVal` IS NULL  OR `$conditionFieldVal` = '' ) ";
+			}
+
+			$whereConditions[] = $whereCondition;
+		}
+
+		// 构建完整的查询条件字符串
+		$whereSql = '';
+		if (!empty($whereConditions)) {
+			$whereSql = implode(" $logicalOperator ", $whereConditions);
+		}
+
+		return $whereSql;
+	}
+
+
+	// 对前端请求的数据二次清洗
+	public function handleData($dataArr)
+	{
+		// 1. 获取数据
+		// 2. condition
+		$conditions = json_decode(urldecode($dataArr['condition']), true);
+		$where = $this->handle($conditions);
+		//var_dump($where);
+		//die;
+		//$whereConditions = array();
+		//$logicalOperator = 'AND'; // 默认逻辑操作符
+		//foreach ($conditions as $condition) {
+		//	if (isset($condition['logicalOperator'])) {
+		//		$logicalOperator = strtoupper($condition['logicalOperator']);
+		//	}
+		//	$conditionFieldVal = $condition['conditionFieldVal'];
+		//	$conditionOptionVal = $condition['conditionOptionVal'];
+		//	$conditionValue = $condition['conditionValueVal']['value'];
+		//	$whereCondition = array();
+		//	if ($conditionOptionVal == 'equal') {
+		//		$whereCondition["$conditionFieldVal"] = $conditionValue;
+		//	} elseif ($conditionOptionVal == 'unequal') {
+		//		$whereCondition["$conditionFieldVal"] = array('NEQ', $conditionValue);
+		//	}
+		//	$whereConditions[] = $whereCondition;
+		//}
+		//
+		//
+		//// 构建完整的查询条件
+		//$where = array();
+		//if (!empty($whereConditions)) {
+		//	$where['_logic'] = $logicalOperator;
+		//	$where['_complex'] = $whereConditions;
+		//}
 		// 3. fields
 		$fields = $dataArr['fields'];
 		// 4. selectedTags
@@ -84,10 +163,7 @@ class StudentService extends BaseService
 		// 5. showForm
 		$showForm = $dataArr['showForm'];
 		// 上面是拿到的条件， 需要组装成sql 查询，并记录值
-		//$dataArr['selectedTags'] 是 group 字段
-		// 查询的字段是 $fields = $dataArr['fields'];
 		$fieldArr = [];
-		//var_dump($fields);
 		foreach ($fields as $key => $value) {
 			if ($value === 'on' && $key === 'max_score') {
 				$fieldArr[] = 'MAX(score) as max_score';
@@ -103,7 +179,7 @@ class StudentService extends BaseService
 		}
 
 		// 要查询的字段是implode(',', $fieldArr) + 分组字段 $dataArr['selectedTags']
-		$queryField = implode(',', $fieldArr) . ',' . $dataArr['selectedTags'];
+		$queryField = implode(',', $fieldArr) . ',' . trim($dataArr['selectedTags'], ',');
 
 		// 组装成 sql 动态的
 		if ($showForm === 'no' && !empty($where)) {

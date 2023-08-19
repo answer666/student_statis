@@ -276,7 +276,7 @@ layui.extend({
 			//新增嵌套查询按钮
 			var conditionAddSub=$('<div class="layui-inline conditionAddSub"></div>');
 			var addSubJq=$('<a href="javascript:void(0);" class="addSubRowBtn"><i class="layui-icon layui-icon-add-circle-fine"></i></a>');
-			conditionAddSub.append(addSubJq);
+			// conditionAddSub.append(addSubJq);
 			//删除按钮
 			var conditionDel=$('<div class="layui-inline conditionDel"></div>');
 			var delJq=$('<a href="javascript:void(0);" class="delRowBtn"><i class="layui-icon layui-icon-close"></i></a>');

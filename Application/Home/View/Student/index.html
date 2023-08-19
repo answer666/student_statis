@@ -13,9 +13,9 @@
 			border-bottom: 1px solid #d5d0d0;
 		}
 
-		.layui-layer-dialog .layui-layer-content {
-			padding: 0px;
-		}
+		/*.layui-layer-dialog .layui-layer-content {*/
+		/*	padding: 0px;*/
+		/*}*/
 
 		.layui-inline {
 			vertical-align: inherit;
@@ -134,6 +134,9 @@
 		.right-aligned-button {
 			text-align: right;
 		}
+		.xpl-dc-popup-query-condition-div {
+			width: 30vw !important;
+		}
 	</style>
 	<!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
@@ -179,8 +182,8 @@
 		<div class="layui-form-item">
 			<label class="layui-form-label">是否使用全部数据：</label>
 			<div class="layui-input-block">
-				<input type="radio"  lay-filter="radio-type" name="showForm" value="yes" title="是" checked>
-				<input type="radio" lay-filter="radio-type" name="showForm" value="no" title="否">
+				<input type="radio" id="radio-yes" lay-filter="radio-type" name="showForm" value="yes" title="是" checked>
+				<input type="radio" id="radio-no" lay-filter="radio-type" name="showForm" value="no" title="否">
 			</div>
 		</div>
 
@@ -191,6 +194,9 @@
 			</div>
 			<input type="hidden" name="condition" id="condition">
 		</div>
+
+		<input type="hidden" name="queryLogID" id="queryLogID" value="<?php echo $queryLogID; ?>">
+		<input type="hidden" name="queryType" id="queryType" value="<?php echo queryType; ?>">
 
 		<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
 			<legend>分组设置</legend>
@@ -213,15 +219,15 @@
 		<div class="layui-form-item">
 			<label class="layui-form-label">统计字段: </label>
 				<div class="layui-input-block">
-					<input type="checkbox" class="checkbox-item" name="fields[number]" title="人数" lay-skin="primary">
-					<input type="checkbox" class="checkbox-item" name="fields[max_score]" title="最高分" lay-skin="primary">
-					<input type="checkbox" class="checkbox-item" name="fields[min_score]" title="最低分" lay-skin="primary">
-					<input type="checkbox" class="checkbox-item" name="fields[avg_score]" title="平均分" lay-skin="primary">
+					<input type="checkbox" class="checkbox-item" name="fields[number]" title="人数" lay-skin="primary" checked>
+					<input type="checkbox" class="checkbox-item" name="fields[max_score]" title="最高分" lay-skin="primary" checked>
+					<input type="checkbox" class="checkbox-item" name="fields[min_score]" title="最低分" lay-skin="primary" checked>
+					<input type="checkbox" class="checkbox-item" name="fields[avg_score]" title="平均分" lay-skin="primary" checked>
 				</div>
 		</div>
 
-		<div class="layui-form-item">
-			<button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo-submit">
+		<div class="layui-form-item" style="display: flex; justify-content: flex-end;">
+			<button style="width: 120px" class="layui-btn layui-btn-fluid" lay-submit lay-filter="condition-form-submit">
 				提交，下一步
 			</button>
 		</div>
@@ -254,23 +260,12 @@
 </script>
 
 <script>
-	// 提交下一步的时候检查是否选择了分组字段，
-	layui.use(['form'], function () {
-		var form = layui.form;
-		form.on('submit(demo-submit)', function (data) {
-			var selectedTags = $('#hiddenSelectedTags').val();
-			if (selectedTags === '') {
-				layer.msg('请选择分组字段');
-				return false;
-			}
-			// 至少选择一个统计字段
-			var checkedCount = $("input.checkbox-item:checked").length;
-			if (checkedCount === 0) {
-				layer.msg('请至少选择一个统计字段');
-				return false;
-			}
-		});
-	});
+	// 如果 xpl-dc-popup-query-condition-div 的width为0 ，则设置为30vw. 监听到有变化则不设置
+	// var queryConditionDiv = document.getElementById('xpl-dc-popup-query-condition-div');
+	// console.log(queryConditionDiv)
+	// if (queryConditionDiv && queryConditionDiv.style.width === null) {
+	// 	queryConditionDiv.style.width = '30vw';
+	// }
 
 	// 控制查询条件是否展示
 	layui.use(['form'], function () {
@@ -378,8 +373,13 @@
 				, table = layui.table;
 
 		const hiddenSelectedTags = document.getElementById("hiddenSelectedTags");
+		// 注意 initData 是 是否回显的标志，如果为空的话，代表直接访问上来的，则为[]
+		const initData = '{$initData}';
+		// initDataObj = JSON.parse(initData);
+		// console.log(initDataObj.showForm)
 
-		dynamicCondition.create({
+		// 这里是初始化的条件，不会走click 事件
+		dc = dynamicCondition.create({
 			elem:"#dcDemo" //通过容器选择器传入，也可以$("#dcDemo"),或者document.getElementById("dcDemo")
 			// ,tableId:"listTable" //静态页面不好演示table数据表格更新
 			,type:"complex"  //type:"simple"/"complex"
@@ -390,7 +390,7 @@
 			,queryCallBack:function(requestData){
 				//  encodeURIComponent 是为了解决中文乱码问题
 				$("#result2").html(encodeURIComponent(JSON.stringify(requestData)));
-				$("#condition").val(encodeURIComponent(JSON.stringify(requestData)));
+				// $("#condition").val(encodeURIComponent(JSON.stringify(requestData)));
 			}
 		});
 
@@ -398,6 +398,9 @@
 		// const tags = ["学校", "年级", "班级", "扩展组1", "扩展组2"];
 		const tags = [{"key":"school_name", "value":"学校"}, {"key":"grade", "value":"年级"}, {"key":"class", "value":"班级"}, {"key":"extend_1", "value":"扩展组1"}, {"key":"extend_2", "value":"扩展组2"}];
 		const tagOptions = document.getElementById("tagOptions");
+		hiddenSelectedTagsTmp = '';
+		// 分组标签列表
+		selectedTagList = $('#selectedTagList');
 		tags.forEach(tag => {
 			const checkboxDiv = document.createElement("div");
 			checkboxDiv.classList.add("layui-form-item");
@@ -408,10 +411,70 @@
 			checkbox.name = "selectedTags";
 			checkbox.title = tag.value;
 			checkbox.value = tag.key;
+			if (initData !== '') {
+				// // 如果 tag.key 在 localStorage.getItem("selectedTags") 中，就选中
+				// if (localStorage.getItem("selectedTags") && localStorage.getItem("selectedTags").indexOf(tag.key) !== -1) {
+				// 	checkbox.checked = true;
+				// 	// hiddenSelectedTags 的 value 为选中的 tag.key ，但是最后一个逗号不要
+				// 	hiddenSelectedTagsTmp += tag.key + ",";
+				// }
+				// // 如果 localStorage 中有 selectedTagList 就插入回去
+				// if (localStorage.getItem("selectedTagList")) {
+				// 	$("#selectedTagList").html(localStorage.getItem("selectedTagList"));
+				// }
+
+				// 上面是老的 下面是新的 selectedTags 分组字段
+				initDataObj = JSON.parse(initData);
+				if (initDataObj.selectedTags && initDataObj.selectedTags.indexOf(tag.key) !== -1) {
+					checkbox.checked = true;
+					// hiddenSelectedTags 的 value 为选中的 tag.key ，但是最后一个逗号不要
+					hiddenSelectedTagsTmp += tag.key + ",";
+
+					// 把 selectedTags 的值 根据 tags 生成，拼接成 <div className="layui-btn layui-btn-primary layui-btn-xs" data-value="class">班级</div>
+					var selectedTagKeys = initDataObj.selectedTags.split(',');
+					if (selectedTagKeys.indexOf(tag.key) !== -1) {
+						var $tag = $('<div>', {
+							'class': 'layui-btn layui-btn-primary layui-btn-xs',
+							'data-value': tag.key,
+							'text': tag.value
+						});
+						selectedTagList.append($tag);
+					}
+				}
+			}
 			checkbox.setAttribute("lay-skin", "primary")
 			checkboxDiv.appendChild(checkbox);
 			tagOptions.appendChild(checkboxDiv);
 		});
+		if (initData !== '') {
+			// 没有提交 先判断是否有缓存 有的话就生成条件
+			// showFormCache = localStorage.getItem("showForm");
+			// if (showFormCache === 'no') {
+			// 	// 生成条件
+			// 	// jq 切换 input radio  为 no checked
+			// 	$("input[name='showForm'][value='no']").attr("checked", true);
+			// 	$("#condition").val(encodeURIComponent(localStorage.getItem("condition")));
+			// 	dc.setCondition(localStorage.getItem("condition"));
+			// 	$('#formContainer').show()
+			// }
+			// ================
+			// 目的是把最后一个逗号去掉， 这个是分组字段的设置。 用于查询条件的生成
+			// if (hiddenSelectedTagsTmp) {
+			// 	hiddenSelectedTags.value = hiddenSelectedTagsTmp.trim(',');
+			// }
+			// 上面是老得 下面的是新的
+			initDataObj = JSON.parse(initData);
+			console.log('initDataObj', initDataObj);
+			console.log('selectedTagList', selectedTagList.val(), initDataObj.selectedTags)
+			hiddenSelectedTags.value = initDataObj.selectedTags
+			if (initDataObj.showForm == 'no') {
+				$("input[name='showForm'][value='no']").attr("checked", true);
+				$("#condition").val(initDataObj.condition);
+				dc.setCondition(decodeURIComponent(initDataObj.condition));
+				$('#formContainer').show()
+			}
+		}
+
 
 		document.getElementById("addTagBtn").addEventListener("click", function() {
 			layer.open({
@@ -422,29 +485,86 @@
 			});
 		});
 
+		// 提交分组字段的选择
 		form.on('submit(submitTags)', function(data) {
 			const selectedTags = [];
 			const selectedVal = [];
+			const selectedValMapping = [];
 			$("input[name='selectedTags']:checked").each(function() {
 				selectedTags.push($(this).attr("title"));
 				selectedVal.push($(this).val());
+				selectedValMapping.push({
+					key: $(this).val(),
+					value: $(this).attr("title")
+				});
 			});
 
 			const selectedTagList = document.getElementById("selectedTagList");
 			selectedTagList.innerHTML = ""; // 清空已选项列表
-
-			selectedTags.forEach(tag => {
+			// selectedValMapping 循环 需要拿到 key 和 value
+			// 动态插入 dom 元素 展示在页面上。
+			selectedValMapping.forEach(tag => {
 				const div = document.createElement("div");
 				div.classList.add("layui-btn", "layui-btn-primary", "layui-btn-xs");
-				div.textContent = tag;
+				div.textContent = tag.value;
+				div.setAttribute("data-value", tag.key)
 				selectedTagList.appendChild(div);
 			});
+			console.log('selectedValMapping', selectedValMapping)
 			// 更新隐藏字段的值
-			hiddenSelectedTags.value = selectedVal.join(", ");
+			hiddenSelectedTags.value = selectedVal.join(",");
 			layer.closeAll();
 			return false;
 		});
 
+		// 提交表单后，数据清洗
+		form.on('submit(condition-form-submit)', function (data) {
+			// console.log('dc.getCondition()', dc.getCondition());
+			// console.log('data', data)
+			// return false;
+			selectedTags = data.field.selectedTags;
+			if (selectedTags === '') {
+				layer.msg('请选择分组字段');
+				return false;
+			}
+			// 保存分组 字段
+			// localStorage.setItem("selectedTags", selectedTags);
+			// 保存分组 dom
+			// selectedTagList = $("#selectedTagList").html();
+			// localStorage.setItem("selectedTagList", selectedTagList);
+
+			// 至少选择一个统计字段
+			var checkedCount = $("input.checkbox-item:checked").length;
+			if (checkedCount === 0) {
+				layer.msg('请至少选择一个统计字段');
+				return false;
+			}
+
+
+			// // 条件和条件showForm
+			// var showForm = data.field.showForm;
+			// var condition = data.field.condition;
+			// console.log(showForm, condition)
+			// // 是否开启条件框的显示与否
+			// localStorage.setItem("showForm", showForm);
+			// // 条件框的值
+			var conditionNow = dc.getCondition();
+			$("#condition").val(encodeURIComponent(conditionNow));
+			// console.log('conditionNow', conditionNow)
+			// // 存到本地
+			// localStorage.setItem("condition", conditionNow);
+			// // 生成条件框
+			// dc.setCondition(conditionNow);
+			// if (showForm === "no") {
+			// 	// 条件框显示
+			// 	$("#formContainer").show();
+			// } else {
+			// 	// 条件框隐藏
+			// 	$("#formContainer").hide();
+			// }
+			// form 表单提交禁止 测试用。
+			// return false;
+		});
 		// 触发一次初始渲染
 		form.render();
 	});

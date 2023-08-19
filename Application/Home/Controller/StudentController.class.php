@@ -42,6 +42,40 @@ class StudentController extends BaseController {
 	}
 
 	/**
+	 * 后台入口
+	 */
+	public function index()
+	{
+		// 默认参数
+		$param = func_get_args();
+		if (!empty($param)) {
+			foreach ($param[0] as $key => $val) {
+				$this->assign($key, $val);
+			}
+		}
+		// 如果是列表页，则初始化数据， 不展示已经查询过的数据条件展示在页面，
+		// 因为与需求不符合。
+		$initData = '';
+		if (I('get.')) {
+			$initData = 'BACK';
+		}
+		// TODO 试着走数据库里去存取数据，并渲染，而不是依赖localstorage
+		$queryLogID = I('get.queryLogID');
+		if ($queryLogID) {
+			$queryLog = $this->queryLogModel->where(['id' => $queryLogID])->find();
+			$initData = $queryLog['org_params'];
+		}
+
+		// 如果 type == history-edit 则是历史记录回看的修改获取的
+		$type = I('get.type');
+		$this->assign('queryType', $type);
+		$this->assign('queryLogID', $queryLogID);
+		$this->assign('initData', $initData);
+		$this->assign('total', $this->service->getTotal());
+		$this->render();
+	}
+
+	/**
 	 * 把数据下载为文件
 	 * @param array $title 标题数据
 	 * @param array $data 内容数据
@@ -169,7 +203,7 @@ class StudentController extends BaseController {
 	public function resultByID()
 	{
 		$id = I('get.id'); // 自增id;
-		$type = I('get.type');
+		$type = I('get.queryType'); // 查询类型，如果是 history 就代表查看历史，不能新增只能更新了。
 		$logRes = $this->queryLogModel->where(['id' => $id])->find();
 		// 选择的分组标签，和查询结果分离开。 属于额外的信息
 		$selectedTagsString = $logRes['group_tags'];
@@ -219,19 +253,41 @@ class StudentController extends BaseController {
 		$sql = $this->service->handleData($params)['sql'];
 
 		// 把这次的查询条件存入数据库
-		//$tableHeader
-		$this->queryLogModel->add([
-			'group_tags' => $selectedTagsString,
-			'header_mapping' => json_encode($excelHeader, JSON_UNESCAPED_UNICODE),
-			'table_header' => json_encode($tableHeader, JSON_UNESCAPED_UNICODE),
-			'query_data' => json_encode($result, JSON_UNESCAPED_UNICODE),
-			'org_params' => json_encode($params, JSON_UNESCAPED_UNICODE),
-			'query_sql' => $sql,
-			'status' => 2, // 临时保存，用户实际上并不知道
-			'created_at' => date('Y-m-d H:i:s')
-		]);
-		// 获取新增的id
-		$id = $this->queryLogModel->getLastInsID();
+		// 这里似乎没拿到id
+		$queryLogID = I('queryLogID');
+		$type = I('type');
+		Log::record('queryLogID: ' . $queryLogID, 'debug');
+
+		// 有queryID 且 type 等于 history 才去更新， 否则应该是创建操作
+		if (!empty($queryLogID) && $type === 'history') {
+			// 更新
+			$this->queryLogModel->where(['id' => $queryLogID])->save([
+				'group_tags' => $selectedTagsString,
+				'header_mapping' => json_encode($excelHeader, JSON_UNESCAPED_UNICODE),
+				'table_header' => json_encode($tableHeader, JSON_UNESCAPED_UNICODE),
+				'query_data' => json_encode($result, JSON_UNESCAPED_UNICODE),
+				'org_params' => json_encode($params, JSON_UNESCAPED_UNICODE),
+				'query_sql' => $sql,
+				'updated_at' => date('Y-m-d H:i:s')
+			]);
+			Log::record('sqlllllll: ' . $this->queryLogModel->getLastSql(), 'debug');
+			$id = $queryLogID;
+		} else {
+			//$tableHeader
+			$this->queryLogModel->add([
+				'group_tags' => $selectedTagsString,
+				'header_mapping' => json_encode($excelHeader, JSON_UNESCAPED_UNICODE),
+				'table_header' => json_encode($tableHeader, JSON_UNESCAPED_UNICODE),
+				'query_data' => json_encode($result, JSON_UNESCAPED_UNICODE),
+				'org_params' => json_encode($params, JSON_UNESCAPED_UNICODE),
+				'query_sql' => $sql,
+				'status' => 2, // 临时保存，用户实际上并不知道
+				'created_at' => date('Y-m-d H:i:s')
+			]);
+			// 获取新增的id
+			$id = $this->queryLogModel->getLastInsID();
+		}
+
 
 		$this->display("Public:header");
 		$this->assign('queryLogID', $id);
@@ -278,7 +334,7 @@ class StudentController extends BaseController {
 		// 3. fields
 		$fields = $dataArr['fields'];
 		// 4. selectedTags
-		$selectedTags = explode(',', $dataArr['selectedTags']);
+		$selectedTags = explode(',', trim($dataArr['selectedTags'], ','));
 		// 5. showForm
 		$showForm = $dataArr['showForm'];
 		// 上面是拿到的条件， 需要组装成sql 查询，并记录值
