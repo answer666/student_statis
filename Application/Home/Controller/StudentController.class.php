@@ -68,7 +68,7 @@ class StudentController extends BaseController {
 
 		// 如果 type == history-edit 则是历史记录回看的修改获取的
 		$type = I('get.type');
-		$this->assign('queryType', $type);
+		$this->assign('type', $type);
 		$this->assign('queryLogID', $queryLogID);
 		$this->assign('initData', $initData);
 		$this->assign('total', $this->service->getTotal());
@@ -222,7 +222,8 @@ class StudentController extends BaseController {
 
 	public function result() {
 		$params = I('post.');
-		Log::record(json_encode($params) . ' result', 'debug');
+		//var_dump($params);
+		//Log::record(json_encode($params) . ' result', 'debug');
 		$header = $params['fields'];
 		// 把 selectedTags 对应的转为对应的中文
 		$selectedTags = explode(',', $params['selectedTags']);
@@ -256,8 +257,9 @@ class StudentController extends BaseController {
 		// 这里似乎没拿到id
 		$queryLogID = I('queryLogID');
 		$type = I('type');
-		Log::record('queryLogID: ' . $queryLogID, 'debug');
-
+		//var_dump($queryLogID, $type);
+		//die;
+		//Log::record('queryLogID: ' . $queryLogID, 'debug');
 		// 有queryID 且 type 等于 history 才去更新， 否则应该是创建操作
 		if (!empty($queryLogID) && $type === 'history') {
 			// 更新
