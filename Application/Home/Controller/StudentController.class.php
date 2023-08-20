@@ -85,8 +85,8 @@ class StudentController extends BaseController {
 	 */
 	public function downloadExcel($title, $data, $fileName = '11.xlsx', $type = 2, $sheet = 'Sheet1')
 	{
-		// 设置导出的字体微软雅黑
-		$styles1 = array( 'font'=>'Arial','font-size'=>10,'font-style'=>'bold', 'fill'=>'#eee', 'halign'=>'center', 'border'=>'left,right,top,bottom');
+		//  设置导出的字体微软雅黑 20230820 默认不设置字体
+		//$styles1 = array( 'font'=>'Arial','font-size'=>10,'font-style'=>'bold', 'fill'=>'#eee', 'halign'=>'center', 'border'=>'left,right,top,bottom');
 
 		if ($type == 2) {
 			//设置 header，用于浏览器下载
@@ -110,7 +110,7 @@ class StudentController extends BaseController {
 			foreach ($title as $k => $val) {
 				$row[] = $value[$k];
 			}
-			$this->write->writeSheetRow($sheet, $row, $styles1);
+			$this->write->writeSheetRow($sheet, $row);
 		}
 
 		if ($type == 1) { //直接保存文件
