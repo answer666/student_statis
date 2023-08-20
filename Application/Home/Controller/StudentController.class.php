@@ -209,10 +209,12 @@ class StudentController extends BaseController {
 		$selectedTagsString = $logRes['group_tags'];
 		$result = $this->queryLogModel->query($logRes['query_sql']);
 		$tableHeader = json_decode($logRes['table_header'], true);
+		$title = $logRes['title'];
 		// 分组标签
 		$this->display("Public:header");
 		$this->assign('queryLogID', $id);
 		$this->assign('result', $result);
+		$this->assign('title', $title);
 		$this->assign('selectedTagsString', $selectedTagsString);
 		$this->assign('tableHeader', $tableHeader);
 		$this->assign('type', $type);
@@ -257,9 +259,7 @@ class StudentController extends BaseController {
 		// 这里似乎没拿到id
 		$queryLogID = I('queryLogID');
 		$type = I('type');
-		//var_dump($queryLogID, $type);
-		//die;
-		//Log::record('queryLogID: ' . $queryLogID, 'debug');
+
 		// 有queryID 且 type 等于 history 才去更新， 否则应该是创建操作
 		if (!empty($queryLogID) && $type === 'history') {
 			// 更新
@@ -290,9 +290,12 @@ class StudentController extends BaseController {
 			$id = $this->queryLogModel->getLastInsID();
 		}
 
+		$logRes = $this->queryLogModel->where('id', $id)->find();
+		$title = $logRes['title'];
 
 		$this->display("Public:header");
 		$this->assign('queryLogID', $id);
+		$this->assign('title', $title);
 		$this->assign('result', $result);
 		$this->assign('selectedTagsString', $selectedTagsString);
 		$this->assign('tableHeader', $tableHeader);
@@ -300,100 +303,7 @@ class StudentController extends BaseController {
 		$this->display("Public:footer");
 	}
 
-	// 对前端请求的数据二次清洗
-	public function handleData($dataArr)
-	{
-		// 1. 获取数据
-		// 2. condition
-		//$condition = json_decode($dataArr['condition'], true);
-		$jsonStr = json_decode(urldecode($dataArr['condition']), true)['jsonStr'];
-		$conditions = json_decode($jsonStr, true);
-		$whereConditions = array();
-		$logicalOperator = 'AND'; // 默认逻辑操作符
-
-		foreach ($conditions as $condition) {
-			if (isset($condition['logicalOperator'])) {
-				$logicalOperator = strtoupper($condition['logicalOperator']);
-			}
-			$conditionFieldVal = $condition['conditionFieldVal'];
-			$conditionOptionVal = $condition['conditionOptionVal'];
-			$conditionValue = $condition['conditionValueVal']['value'];
-			$whereCondition = array();
-			if ($conditionOptionVal == 'equal') {
-				$whereCondition["$conditionFieldVal"] = $conditionValue;
-			} elseif ($conditionOptionVal == 'unequal') {
-				$whereCondition["$conditionFieldVal"] = array('NEQ', $conditionValue);
-			}
-			$whereConditions[] = $whereCondition;
-		}
-
-		// 构建完整的查询条件
-		$where = array();
-		if (!empty($whereConditions)) {
-			$where['_logic'] = $logicalOperator;
-			$where['_complex'] = $whereConditions;
-		}
-		// 3. fields
-		$fields = $dataArr['fields'];
-		// 4. selectedTags
-		$selectedTags = explode(',', trim($dataArr['selectedTags'], ','));
-		// 5. showForm
-		$showForm = $dataArr['showForm'];
-		// 上面是拿到的条件， 需要组装成sql 查询，并记录值
-		//$dataArr['selectedTags'] 是 group 字段
-		// 查询的字段是 $fields = $dataArr['fields'];
-		$fieldArr = [];
-		//var_dump($fields);
-		foreach ($fields as $key => $value) {
-			if ($value === 'on' && $key === 'max_score') {
-				$fieldArr[] = 'MAX(score) as max_score';
-			} elseif ($value === 'on' && $key === 'min_score') {
-				$fieldArr[] = 'MIN(score) as min_score';
-			} elseif ($value === 'on' && $key === 'avg_score') {
-				$fieldArr[] = 'AVG(score) as avg_score';
-			} elseif ($value === 'on' && $key === 'number') {
-				$fieldArr[] = 'COUNT(*) as number';
-			} else {
-				$fieldArr[] = $key;
-			}
-		}
-		// 组装成 sql 动态的
-		if ($showForm === 'no' && !empty($where)) {
-			$result = $this->model
-				->field(implode(',', $fieldArr))
-				->where($where)
-				->group($dataArr['selectedTags'])
-				->select();
-		} else {
-			$result = $this->model
-				->field(implode(',', $fieldArr))
-				->group($dataArr['selectedTags'])
-				->select();
-		}
-		Log::record('sql: ' . $this->model->getLastSql());
-		return $result;
-	}
-
-
-	public function search()
-	{
-		$tableHeader = [];
-		//		{
-		//			"showForm":"no",
-		//    "condition":"{"rowLength":1,"QueryCondition[0].conditionField":"school_name","QueryCondition[0].conditionOption":"equal","QueryCondition[0].conditionValue":"1111","QueryCondition[0].conditionValueLeft":"","QueryCondition[0].conditionValueRight":"","QueryCondition[0].logicalOperator":"and","QueryCondition[0].groupname":"groupname2","QueryCondition[0].subgroupname":"groupname5515024744430082","QueryCondition[0].rowlevel":"0","QueryCondition[0].datatype":null}",
-		//    "selectedTags":"grade, class",
-		//    "fields":{
-		//			"min_score":"on",
-		//        "avg_score":"on"
-		//    }
-		//}
-		//按照年级和班级分组，计算平均分和最低分
-		$result = $this->model->field('grade, class, MAX(score) as max_score, MIN(score) as min_score')
-			->group('grade, class')
-			->select();
-		return $this->ajaxReturn(message('success', 'success', $result));
-	}
-
+	// 保存当前查询
 	public function saveQueryLog()
 	{
 		$queryLogID = I('post.queryLogID');

@@ -6,10 +6,6 @@ use Think\Controller;
 
 class BaseController extends Controller
 {
-    // 用户ID
-    protected $userId;
-    // 用户信息
-    protected $userInfo;
     // 模型
     protected $model;
     // 服务
@@ -17,8 +13,6 @@ class BaseController extends Controller
 
     /**
      * 初始化
-     * @author 牧羊人
-     * @since 2021/1/17
      */
     protected function _initialize()
     {
@@ -28,13 +22,6 @@ class BaseController extends Controller
 
 	private function initConfig()
 	{
-		// 网站全称
-		$this->assign("siteName", C('SITE_NAME'));
-		// 网站简称
-		$this->assign("nickName", C('NICK_NAME'));
-		// 版本号
-		$this->assign('version', C('VERSION'));
-
 		//系统分页参数
 		define('PERPAGE', isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 0);
 		define('PAGE', isset($_REQUEST['page']) ? $_REQUEST['page'] : 0);
@@ -52,37 +39,6 @@ class BaseController extends Controller
 		$this->assign('act', ACT);
 	}
 
-
-	/**
-     * 后台入口
-     */
-    public function index()
-    {
-        if (IS_POST) {
-            $result = $this->service->getList();
-            $this->ajaxReturn($result);
-            return;
-        }
-        // 默认参数
-        $param = func_get_args();
-        if (!empty($param)) {
-            foreach ($param[0] as $key => $val) {
-                $this->assign($key, $val);
-            }
-        }
-		// 如果是列表页，则初始化数据， 不展示已经查询过的数据条件展示在页面，
-	    // 因为与需求不符合。
-	    $initData = '';
-	    if (I('get.')) {
-			$initData = 'BACK';
-	    }
-		// 如果 type == history-edit 则是历史记录回看的修改获取的
-		$type = I('get.type');
-		$this->assign('type', $type);
-		$this->assign('initData', $initData);
-		$this->assign('total', $this->service->getTotal());
-        $this->render();
-    }
 
     /**
      * 渲染模板
@@ -115,30 +71,4 @@ class BaseController extends Controller
         // 渲染底部
         $this->display("Public:footer");
     }
-
-    /**
-     * 404错误页面
-     * @author 牧羊人
-     * @since 2021/1/17
-     */
-    public function _empty()
-    {
-        $this->display('Public:404');
-    }
-
-    /**
-     * 设置状态
-     * @return mixed
-     * @since 2021/1/18
-     * @author 牧羊人
-     */
-    public function setStatus()
-    {
-        if (IS_POST) {
-            $result = $this->service->setStatus();
-            $this->ajaxReturn($result);
-            return;
-        }
-    }
-
 }

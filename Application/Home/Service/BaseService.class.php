@@ -10,8 +10,6 @@ class BaseService
     /**
      * 获取数据列表
      * @return array
-     * @since 2021/1/17
-     * @author 牧羊人
      */
     public function getList()
     {
@@ -52,15 +50,6 @@ class BaseService
             }
         }
 
-        //// 设置查询条件
-        //if (is_array($map)) {
-        //    $map['mark'] = 1;
-        //} elseif ($map) {
-        //    $map .= " AND mark=1 ";
-        //} else {
-        //    $map .= " mark=1 ";
-        //}
-
         // 查询数据
         $result = $this->model->where($map)->order($sort)->page(PAGE, PERPAGE)->getField("id", true);
 
@@ -93,8 +82,6 @@ class BaseService
     /**
      * 添加或编辑
      * @return array
-     * @since 2021/1/18
-     * @author 牧羊人
      */
     public function edit()
     {
@@ -119,8 +106,6 @@ class BaseService
     /**
      * 设置状态
      * @return array
-     * @since 2021/1/18
-     * @author 牧羊人
      */
     public function setStatus()
     {

@@ -8,19 +8,143 @@
   <link href="__HOME__/assets/images/favicon.ico" rel="icon">
   <link rel="stylesheet" href="__HOME__/assets/libs/layui/css/layui.css"/>
   <link rel="stylesheet" href="__HOME__/assets/module/admin.css"/>
-  <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-  <![endif]-->
   <script type="text/javascript" src="__HOME__/assets/libs/layui/layui.js"></script>
-  <script type="text/javascript" src="__HOME__/assets/js/common.js?v=318"></script>
-  <script type="text/javascript">
-    var C = '{$app}';
-    var A = '{$act}';
-    var mUrl = "/";
-    var cUrl = "/" + C;
-    var aUrl = cUrl+"/"+A;
-  </script>
+  <script type="text/javascript" src="__HOME__/assets/js/common.js?v=0820"></script>
+  <!-- 注意这里对 layui 的表格样式做了修改，自定义的按钮不会换行，而且一行展开   -->
+  <style>
+    .layui-table-tool-temp {
+        padding-right: 4px !important;
+    }
+    h2 {
+      padding: 15px;
+      border-bottom: 1px solid #d5d0d0;
+    }
+
+    /*.layui-layer-dialog .layui-layer-content {*/
+    /*	padding: 0px;*/
+    /*}*/
+
+    .layui-inline {
+      vertical-align: inherit;
+    }
+
+    .unselect_btn {
+      line-height: 2.4;
+      border: 1px #c7cacb solid;
+      background: #fff;
+      padding: 0 15px;
+      cursor: pointer;
+      margin-right: 15px;
+      color: #969899;
+      border-radius: 2px;
+    }
+
+    .select_btn {
+      line-height: 2.4;
+      background: #4063AE;
+      padding: 0 15px;
+      margin-right: 15px;
+      cursor: pointer;
+      color: #fff;
+      border: none;
+      border: 1px #4063AE solid;
+      border-radius: 2px;
+    }
+
+    .condition_title {
+      text-align: left;
+      padding-right: 10px;
+      font-size: 16px;
+      line-height: 2.4;
+      vertical-align: top;
+      width: 80px;
+    }
+
+    .selectedFairId {
+      background: #EFF1F9;
+      padding: 7px 7px 7px 7px;
+      margin-right: 5px;
+      border-radius: 4px;
+    }
+
+    .del {
+      margin-left: 5px;
+      cursor: pointer;
+      color: #459ae9;
+      text-decoration: none;
+    }
+
+    .del:HOVER {
+      margin-left: 5px;
+      cursor: pointer;
+      color: red;
+      text-decoration: none;
+    }
+
+    .more {
+      border: none;
+      vertical-align: top;
+      color: #4668B0;
+      border-radius: 4px;
+      background: #EFF1F9;
+      width: 80px;
+      height: 30px;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+
+    #search {
+      font-size: 17px;
+      background: #6888F8;
+      line-height: 2.4;
+      border: none;
+      padding: 0 50px;
+      cursor: pointer;
+      margin: 0 auto;
+      color: #fff;
+      border-radius: 4px;
+      display: block;
+      margin-top: 50px;
+    }
+
+    .time_type_div {
+      width: 85px;
+    }
+
+    .time_type_div .layui-select-title input {
+      border: none;
+      color: #4668B0;
+    }
+
+    .time_year_div {
+      width: 75px;
+    }
+
+    .time_year_div .layui-select-title input {
+      border: none;
+      color: #4668B0;
+    }
+
+    .time_detail_div {
+      width: 85px;
+      display: none;
+    }
+
+    .time_detail_div .layui-select-title input {
+      border: none;
+      color: #4668B0;
+    }
+
+    .layui-form-select .layui-edge {
+      border-top-color: #4668B0;
+    }
+    .right-aligned-button {
+      text-align: right;
+    }
+    .xpl-dc-popup-query-condition-div {
+      width: 30vw !important;
+    }
+  </style>
 </head>
 
 <body>

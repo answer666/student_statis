@@ -9,8 +9,6 @@ class StudentService extends BaseService
 {
     /**
      * 构造函数
-     * @author 牧羊人
-     * @since 2021/1/17
      * UserService constructor.
      */
     public function __construct()
@@ -42,44 +40,6 @@ class StudentService extends BaseService
 		// 查询并分组
 		return $this->model->field($field . ', COUNT(id) as count')
 			->group($field)->select();
-	}
-
-	public function handle111($conditions)
-	{
-		$whereConditions = array();
-		$logicalOperator = 'AND'; // 默认逻辑操作符
-
-		foreach ($conditions as $condition) {
-			if (isset($condition['logicalOperator'])) {
-				$logicalOperator = strtoupper($condition['logicalOperator']);
-			}
-
-			$conditionFieldVal = $condition['conditionFieldVal'];
-			$conditionOptionVal = $condition['conditionOptionVal'];
-			$conditionValue = $condition['conditionValueVal']['value'];
-
-			$whereCondition = array();
-
-			if ($conditionOptionVal === 'equal') {
-				$whereCondition["$conditionFieldVal"] = $conditionValue;
-			} elseif ($conditionOptionVal === 'unequal') {
-				$whereCondition["$conditionFieldVal"] = array('NEQ', $conditionValue);
-			}
-
-			$whereConditions[] = $whereCondition;
-		}
-
-		// 构建完整的查询条件
-		$where = array();
-		if (!empty($whereConditions)) {
-			if (count($whereConditions) > 1) {
-				$where['_logic'] = $logicalOperator;
-				$where['_complex'] = $whereConditions;
-			} else {
-				$where = $whereConditions[0];
-			}
-		}
-		return $where;
 	}
 
 	public function handle($conditions)
@@ -129,33 +89,6 @@ class StudentService extends BaseService
 		// 2. condition
 		$conditions = json_decode(urldecode($dataArr['condition']), true);
 		$where = $this->handle($conditions);
-		//var_dump($where);
-		//die;
-		//$whereConditions = array();
-		//$logicalOperator = 'AND'; // 默认逻辑操作符
-		//foreach ($conditions as $condition) {
-		//	if (isset($condition['logicalOperator'])) {
-		//		$logicalOperator = strtoupper($condition['logicalOperator']);
-		//	}
-		//	$conditionFieldVal = $condition['conditionFieldVal'];
-		//	$conditionOptionVal = $condition['conditionOptionVal'];
-		//	$conditionValue = $condition['conditionValueVal']['value'];
-		//	$whereCondition = array();
-		//	if ($conditionOptionVal == 'equal') {
-		//		$whereCondition["$conditionFieldVal"] = $conditionValue;
-		//	} elseif ($conditionOptionVal == 'unequal') {
-		//		$whereCondition["$conditionFieldVal"] = array('NEQ', $conditionValue);
-		//	}
-		//	$whereConditions[] = $whereCondition;
-		//}
-		//
-		//
-		//// 构建完整的查询条件
-		//$where = array();
-		//if (!empty($whereConditions)) {
-		//	$where['_logic'] = $logicalOperator;
-		//	$where['_complex'] = $whereConditions;
-		//}
 		// 3. fields
 		$fields = $dataArr['fields'];
 		// 4. selectedTags
@@ -194,7 +127,7 @@ class StudentService extends BaseService
 				->group($dataArr['selectedTags'])
 				->select();
 		}
-		Log::record('sql: ' . $this->model->getLastSql());
+		//Log::record('sql: ' . $this->model->getLastSql());
 		return [
 			'result' => $result,
 			'sql' => $this->model->getLastSql()
