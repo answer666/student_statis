@@ -1,5 +1,8 @@
 <div style="padding: 16px;">
 	<input type="hidden" name="queryLogID"  value="{$queryLogID}">
+	<!-- type来识别是否是历史记录的再保存	-->
+	<input type="hidden" name="type"  value="{$type}">
+	<input type="hidden" name="slug"  value="{$slug}">
 	<table lay-filter="result-show" id="result-show">
 		<thead>
 			<tr>
@@ -118,6 +121,8 @@
 								type: 'post',
 								data: {
 									'queryLogID': $('input[name="queryLogID"]').val(),
+									'type': $('input[name="type"]').val(),
+									'slug': $('input[name="slug"]').val(),
 									'queryLogName': layero.find(".layui-layer-input").val()
 								},
 								dataType: 'json',

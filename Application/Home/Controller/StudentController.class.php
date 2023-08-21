@@ -159,9 +159,6 @@ class StudentController extends BaseController {
 		} else {
 			$command = "zip $zipFileName -j $fileName > /dev/null";
 		}
-		//var_dump($command);
-		//system("zip downloaded_files123.zip -j /usr/share/nginx/html/202308152207024304.xlsx");
-		//die;
 		system($command);
 		ob_clean();
 		// 设置响应头的 Content-Type
@@ -224,8 +221,6 @@ class StudentController extends BaseController {
 
 	public function result() {
 		$params = I('post.');
-		//var_dump($params);
-		//Log::record(json_encode($params) . ' result', 'debug');
 		$header = $params['fields'];
 		// 把 selectedTags 对应的转为对应的中文
 		$selectedTags = explode(',', $params['selectedTags']);
@@ -259,20 +254,22 @@ class StudentController extends BaseController {
 		// 这里似乎没拿到id
 		$queryLogID = I('queryLogID');
 		$type = I('type');
-
 		// 有queryID 且 type 等于 history 才去更新， 否则应该是创建操作
 		if (!empty($queryLogID) && $type === 'history') {
-			// 更新
-			$this->queryLogModel->where(['id' => $queryLogID])->save([
+			// 这里展示不能更新，因为用户此时还不一定会保存
+			$saveData = [
 				'group_tags' => $selectedTagsString,
 				'header_mapping' => json_encode($excelHeader, JSON_UNESCAPED_UNICODE),
 				'table_header' => json_encode($tableHeader, JSON_UNESCAPED_UNICODE),
 				'query_data' => json_encode($result, JSON_UNESCAPED_UNICODE),
 				'org_params' => json_encode($params, JSON_UNESCAPED_UNICODE),
 				'query_sql' => $sql,
+				'status' => 1,
 				'updated_at' => date('Y-m-d H:i:s')
-			]);
-			//Log::record('sqlllllll: ' . $this->queryLogModel->getLastSql(), 'debug');
+			];
+			$slug = 'EDIT';
+			// 缓存一下
+			F('id_'.$queryLogID, $saveData);
 			$id = $queryLogID;
 		} else {
 			//$tableHeader
@@ -286,15 +283,16 @@ class StudentController extends BaseController {
 				'status' => 2, // 临时保存，用户实际上并不知道
 				'created_at' => date('Y-m-d H:i:s')
 			]);
+			$slug = 'CREATE';
 			// 获取新增的id
 			$id = $this->queryLogModel->getLastInsID();
 		}
-
-		$logRes = $this->queryLogModel->where('id', $id)->find();
+		$logRes = $this->queryLogModel->where(['id'=>$id])->find();
 		$title = $logRes['title'];
 
 		$this->display("Public:header");
 		$this->assign('queryLogID', $id);
+		$this->assign('slug', $slug);
 		$this->assign('title', $title);
 		$this->assign('result', $result);
 		$this->assign('selectedTagsString', $selectedTagsString);
@@ -308,13 +306,28 @@ class StudentController extends BaseController {
 	{
 		$queryLogID = I('post.queryLogID');
 		$queryLogName = I('post.queryLogName');
+		$slug = I('post.slug');
 		if (empty($queryLogName)) {
 			// 随机一个名字带上日期
 			$queryLogName = '查询日志' . date('Y-m-d H:i:s');
 		}
-		$this->queryLogModel->where(['id' => $queryLogID])
-			->save(['title' => $queryLogName, 'status' => 1, 'updated_at' => date('Y-m-d H:i:s')]);
-		return $this->ajaxReturn(message('保存成功', 'success', []));
+		// 代表不是历史记录的再保存
+		if ($slug != 'EDIT') {
+			$this->queryLogModel->where(['id' => $queryLogID])
+				->save(['title' => $queryLogName, 'status' => 1, 'updated_at' => date('Y-m-d H:i:s')]);
+		} else {
+			$cacheData = F('id_'.$queryLogID);
+			$cacheData['title'] = $queryLogName;
+			if ($cacheData) {
+				$this->queryLogModel->where(['id' => $queryLogID])->save($cacheData);
+			} else {
+				return $this->ajaxReturn(message('保存失败', 'success', [$cacheData]));
+			}
+			// 删除缓存数据
+			F('id_'.$queryLogID, null);
+		}
+
+		return $this->ajaxReturn(message('保存成功', 'success', [$cacheData]));
 	}
 
 	public function history()
